@@ -70,12 +70,15 @@ async function splitByDelimiter() {
             if (!delim) throw new Error("Informe o delimitador!");
             
             const range = context.workbook.getSelectedRange();
-            // CARREGA ENDEREÇO E TAMANHO
+            
+            // CARREGA ENDEREÇO E QUANTIDADE DE LINHAS
             range.load(["address", "rowCount"]); 
             await context.sync();
             
+            // CRIA UMA MATRIZ DE FÓRMULAS COM O MESMO TAMANHO DA SELEÇÃO
             const formulas = [];
             for (let i = 0; i < range.rowCount; i++) {
+                // Pega o endereço de CADA célula individualmente
                 const cellAddr = range.getCell(i, 0).address;
                 formulas.push([
                     `=TEXTBEFORE(${cellAddr}; "${delim}")`,
@@ -83,12 +86,16 @@ async function splitByDelimiter() {
                 ]);
             }
             
-            const target = range.getOffsetRange(0, 1).getResizedRange(0, 1);
+            // Define o alvo: mesma altura da seleção, mas 2 colunas à direita
+            const target = range.getOffsetRange(0, range.columnCount).getResizedRange(formulas.length - 1, 1);
             target.formulas = formulas;
             
             await context.sync();
             updateStatus("➗ Texto dividido!", "success");
-        } catch (e) { updateStatus("❌ " + e.message, "error"); }
+        } catch (e) { 
+            updateStatus("❌ Erro: " + e.message, "error"); 
+            console.error(e);
+        }
     });
 }
 
