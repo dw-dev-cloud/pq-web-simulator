@@ -117,14 +117,13 @@ async function transformText(mode) {
         try {
             const range = context.workbook.getSelectedRange();
             
-            // 1. CARREGA TUDO QUE VAMOS USAR ANTES DE QUALQUER LEITURA
-            range.load(["values", "rowCount", "columnCount"]); 
-            await context.sync(); // 2. SINCRONIZA PRA GARANTIR QUE OS DADOS TÃO NA MEMÓRIA
+            // CARREGA SÓ OS VALORES, NADA DE ADDRESS!
+            range.load("values"); 
+            await context.sync(); 
 
             const values = range.values;
             const newValues = [];
 
-            // 3. PROCESSA OS VALORES
             for (let i = 0; i < values.length; i++) {
                 const newRow = [];
                 for (let j = 0; j < values[i].length; j++) {
@@ -138,14 +137,11 @@ async function transformText(mode) {
                 newValues.push(newRow);
             }
 
-            // 4. ESCREVE DE VOLTA
             range.values = newValues;
-            
-            await context.sync(); // 5. SINCRONIZA PRA GARANTIR QUE A ESCRITA ACONTECEU
+            await context.sync(); 
             updateStatus(`⬆️⬇️ Convertido para ${mode}!`, "success");
         } catch (e) { 
             updateStatus("❌ Erro: " + e.message, "error"); 
-            console.error(e);
         }
     });
 }
