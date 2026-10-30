@@ -116,29 +116,32 @@ async function transformText(mode) {
     await Excel.run(async (context) => {
         try {
             const range = context.workbook.getSelectedRange();
-            // Carrega o endereço E o tamanho do range
-            range.load(["address", "rowCount", "columnCount"]); 
-            await context.sync();
-
-            const funcName = mode === "UPPER" ? "UPPER" : "LOWER";
             
-            // Cria um array de fórmulas com o EXATO tamanho da seleção
-            // Isso evita o erro de "dimensões não batem"
-            const formulas = [];
-            for (let i = 0; i < range.rowCount; i++) {
-                const rowFormulas = [];
-                for (let j = 0; j < range.columnCount; j++) {
-                    // Pega o endereço de cada célula individualmente
-                    const cellAddr = range.getCell(i, j).address;
-                    rowFormulas.push(`=${funcName}(${cellAddr})`);
+            // 1. CARREGA TUDO QUE VAMOS USAR ANTES DE QUALQUER LEITURA
+            range.load(["values", "rowCount", "columnCount"]); 
+            await context.sync(); // 2. SINCRONIZA PRA GARANTIR QUE OS DADOS TÃO NA MEMÓRIA
+
+            const values = range.values;
+            const newValues = [];
+
+            // 3. PROCESSA OS VALORES
+            for (let i = 0; i < values.length; i++) {
+                const newRow = [];
+                for (let j = 0; j < values[i].length; j++) {
+                    let cellValue = values[i][j];
+                    if (typeof cellValue === 'string' && cellValue.trim() !== '') {
+                        newRow.push(mode === "UPPER" ? cellValue.toUpperCase() : cellValue.toLowerCase());
+                    } else {
+                        newRow.push(cellValue);
+                    }
                 }
-                formulas.push(rowFormulas);
+                newValues.push(newRow);
             }
 
-            // Aplica o array de fórmulas no mesmo range selecionado
-            range.formulas = formulas;
+            // 4. ESCREVE DE VOLTA
+            range.values = newValues;
             
-            await context.sync();
+            await context.sync(); // 5. SINCRONIZA PRA GARANTIR QUE A ESCRITA ACONTECEU
             updateStatus(`⬆️⬇️ Convertido para ${mode}!`, "success");
         } catch (e) { 
             updateStatus("❌ Erro: " + e.message, "error"); 
