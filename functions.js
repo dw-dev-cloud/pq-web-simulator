@@ -1,123 +1,104 @@
-// Garante que o Office.js carregou antes de做任何 coisa
-if (typeof Office === 'undefined') {
-    console.error("Office.js não carregou!");
-} else {
-    Office.onReady((info) => {
-        if (info.host === Office.HostType.Excel) {
-            updateStatus("✅ PQ Web Simulator Pronto!", "success");
-        }
-    });
-}
-
-
-// Garante que o Office.js está pronto antes de fazer qualquer coisa
+// INICIALIZAÇÃO DO OFFICE
 Office.onReady((info) => {
     if (info.host === Office.HostType.Excel) {
-        updateStatus("✅ Suplemento PQ Web Simulator pronto!", "success");
+        updateStatus("✅ PQ Web Simulator Pronto!", "success");
     }
 });
 
-// Função auxiliar para atualizar o status na tela
-function updateStatus(message, type = "") {
-    const statusDiv = document.getElementById("status");
-    statusDiv.innerText = message;
-    statusDiv.className = type; // 'success' ou 'error'
+// FUNÇÃO AUXILIAR DE STATUS
+function updateStatus(msg, type = "") {
+    const el = document.getElementById("status");
+    if (el) {
+        el.innerText = msg;
+        el.className = type;
+    }
 }
 
-// 1. MANter APENAS COLUNAS ESPECÍFICAS (Simula "Remover Colunas")
+// 1. MANter COLUNAS (Versão Segura)
 async function chooseColumns() {
     await Excel.run(async (context) => {
         try {
             const input = document.getElementById("colsToKeep").value;
-            if (!input) throw new Error("Digite os números das colunas (ex: 1,2,5)");
+            if (!input) throw new Error("Digite os números!");
             
-            // Converte "1,2,5" em array de números [1,2,5]
-            const colIndexes = input.split(",").map(n => parseInt(n.trim()));
-            
-            // Pega a tabela inteira da aba ativa (ajuste o range se necessário)
+            const cols = input.split(",").map(n => parseInt(n.trim()));
             const sheet = context.workbook.worksheets.getActiveWorksheet();
-            const usedRange = sheet.getUsedRange();
-            usedRange.load("address");
-            await context.sync();
-
-            // Monta a fórmula CHOOSECOLS dinâmica
-            // Ex: =CHOOSECOLS(A1:L100; 1; 2; 5)
-            const formulaArgs = colIndexes.join("; ");
-            const formula = `=CHOOSECOLS(${usedRange.address}; ${formulaArgs})`;
+            const range = sheet.getUsedRange();
             
-            // Injeta em uma nova célula (ex: N1) para não sobrescrever a original
-            sheet.getCell(0, usedRange.columnCount + 2).formulas = [[formula]];
+            // CARREGA ENDEREÇO ANTES DE USAR
+            range.load("address"); 
+            await context.sync();
+            
+            const formula = `=CHOOSECOLS(${range.address}; ${cols.join("; ")})`;
+            sheet.getCell(0, range.columnCount + 2).formulas = [[formula]];
             
             await context.sync();
-            updateStatus("✨ Colunas filtradas com sucesso!", "success");
-        } catch (error) {
-            updateStatus("❌ Erro: " + error.message, "error");
-        }
+            updateStatus("✨ Colunas filtradas!", "success");
+        } catch (e) { updateStatus("❌ " + e.message, "error"); }
     });
 }
 
-// 2. APLICAR FILTRO DINÂMICO
+// 2. APLICAR FILTRO (Versão Segura)
 async function applyFilter() {
     await Excel.run(async (context) => {
         try {
-            const colLetter = document.getElementById("filterCol").value.toUpperCase();
-            const filterValue = document.getElementById("filterVal").value;
+            const col = document.getElementById("filterCol").value.toUpperCase();
+            const val = document.getElementById("filterVal").value;
+            if (!col || !val) throw new Error("Preencha tudo!");
             
-            if (!colLetter || !filterValue) throw new Error("Preencha a coluna e o valor!");
-
             const sheet = context.workbook.worksheets.getActiveWorksheet();
-            const usedRange = sheet.getUsedRange();
-            usedRange.load("address");
-            await context.sync();
-
-            // Monta: =FILTER(A1:L100; C1:C100="JP")
-            const formula = `=FILTER(${usedRange.address}; ${colLetter}:${colLetter}="${filterValue}")`;
+            const range = sheet.getUsedRange();
             
-            sheet.getCell(0, usedRange.columnCount + 2).formulas = [[formula]];
+            // CARREGA ENDEREÇO ANTES DE USAR
+            range.load("address");
+            await context.sync();
+            
+            const formula = `=FILTER(${range.address}; ${col}:${col}="${val}")`;
+            sheet.getCell(0, range.columnCount + 2).formulas = [[formula]];
+            
             await context.sync();
             updateStatus(" Filtro aplicado!", "success");
-        } catch (error) {
-            updateStatus("❌ Erro: " + error.message, "error");
-        }
+        } catch (e) { updateStatus("❌ " + e.message, "error"); }
     });
 }
 
-// 3. DIVIDIR POR DELIMITADOR (TEXTBEFORE/TEXTAFTER)
+// 3. DIVIDIR TEXTO (Versão Segura)
 async function splitByDelimiter() {
     await Excel.run(async (context) => {
         try {
-            const delimiter = document.getElementById("delimiter").value;
-            if (!delimiter) throw new Error("Informe o delimitador!");
-
+            const delim = document.getElementById("delimiter").value;
+            if (!delim) throw new Error("Informe o delimitador!");
+            
             const range = context.workbook.getSelectedRange();
-            range.load("address");
+            // CARREGA ENDEREÇO E TAMANHO
+            range.load(["address", "rowCount"]); 
             await context.sync();
-
-            // Cria duas colunas ao lado: Antes e Depois do delimitador
-            const beforeFormula = `=TEXTBEFORE(${range.address}; "${delimiter}")`;
-            const afterFormula = `=TEXTAFTER(${range.address}; "${delimiter}")`;
             
-            const targetRange = range.getOffsetRange(0, 1); // Coluna ao lado
-            targetRange.formulas = [[beforeFormula], [afterFormula]]; // Preenche verticalmente se selecionar múltiplas
+            const formulas = [];
+            for (let i = 0; i < range.rowCount; i++) {
+                const cellAddr = range.getCell(i, 0).address;
+                formulas.push([
+                    `=TEXTBEFORE(${cellAddr}; "${delim}")`,
+                    `=TEXTAFTER(${cellAddr}; "${delim}")`
+                ]);
+            }
             
-            // Nota: Para múltiplas linhas, precisamos ajustar a lógica de offset
-            // Mas para MVP, isso já mostra o conceito!
+            const target = range.getOffsetRange(0, 1).getResizedRange(0, 1);
+            target.formulas = formulas;
             
             await context.sync();
             updateStatus("➗ Texto dividido!", "success");
-        } catch (error) {
-            updateStatus("❌ Erro: " + error.message, "error");
-        }
+        } catch (e) { updateStatus("❌ " + e.message, "error"); }
     });
 }
 
-// 4. TRANSFORMAR TEXTO (UPPER/LOWER)
+// 4. TRANSFORMAR TEXTO (VERSÃO FINAL SEM ADDRESS)
 async function transformText(mode) {
     await Excel.run(async (context) => {
         try {
             const range = context.workbook.getSelectedRange();
             
-            // CARREGA SÓ OS VALORES, NADA DE ADDRESS!
+            // SÓ CARREGA VALORES. ZERO ADDRESS.
             range.load("values"); 
             await context.sync(); 
 
