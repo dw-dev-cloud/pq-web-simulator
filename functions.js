@@ -72,7 +72,7 @@ async function splitByDelimiter() {
             const range = context.workbook.getSelectedRange();
             
             // CARREGA ENDEREÇO E QUANTIDADE DE LINHAS
-            range.load(["address", "rowCount"]); 
+            range.load("rowCount"); 
             await context.sync();
             
             // CRIA UMA MATRIZ DE FÓRMULAS COM O MESMO TAMANHO DA SELEÇÃO
