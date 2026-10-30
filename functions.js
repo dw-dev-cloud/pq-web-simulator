@@ -58,36 +58,27 @@ async function splitByDelimiter() {
             
             const range = context.workbook.getSelectedRange();
             
-            // CARREGA SÓ OS VALORES. NADA DE ADDRESS.
-            range.load("values"); 
+            // PASSO CRUCIAL: Carregar address E rowCount ANTES de usar
+            range.load(["address", "rowCount"]); 
             await context.sync();
             
-            const values = range.values;
-            const newValues = [];
-            
-            for (let i = 0; i < values.length; i++) {
-                const cellValue = values[i][0]; // Pega o valor da primeira coluna da seleção
-                
-                if (typeof cellValue === 'string' && cellValue.includes(delim)) {
-                    // DIVIDE NO JAVASCRIPT PURO
-                    const parts = cellValue.split(delim);
-                    // Pega as duas primeiras partes (ou vazia se não tiver)
-                    const part1 = parts[0] ? parts[0].trim() : "";
-                    const part2 = parts.slice(1).join(delim).trim(); // Junta o resto caso tenha mais delimitadores
-                    newValues.push([part1, part2]);
-                } else {
-                    // Se não tiver delimitador, mantém original e deixa segunda coluna vazia
-                    newValues.push([cellValue, ""]);
-                }
+            const formulas = [];
+            // Loop seguro criando fórmula individual por linha
+            for (let i = 0; i < range.rowCount; i++) {
+                const cellAddr = range.getCell(i, 0).address;
+                formulas.push([
+                    `=TEXTBEFORE(${cellAddr}; "${delim}")`,
+                    `=TEXTAFTER(${cellAddr}; "${delim}")`
+                ]);
             }
             
-            // ESCREVE OS VALORES DIRETAMENTE NAS CÉLULAS (2 colunas de largura)
-            // O Excel ajusta automaticamente o tamanho do range de destino
-            const targetRange = range.getOffsetRange(0, range.columnCount).getResizedRange(newValues.length - 1, 1);
-            targetRange.values = newValues; 
+            // Define o alvo exato para receber as fórmulas
+            const target = range.getOffsetRange(0, range.columnCount)
+                              .getResizedRange(formulas.length - 1, 1);
+            target.formulas = formulas;
             
             await context.sync();
-            updateStatus("➗ Texto dividido com sucesso!", "success");
+            updateStatus("➗ Texto dividido!", "success");
         } catch (e) { 
             updateStatus("❌ Erro: " + e.message, "error"); 
             console.error(e);
@@ -99,10 +90,13 @@ async function transformText(mode) {
     await Excel.run(async (context) => {
         try {
             const range = context.workbook.getSelectedRange();
+            // CARREGA SÓ VALUES. SEM ADDRESS. SEM PAYLOAD PESADO.
             range.load("values"); 
             await context.sync(); 
+            
             const values = range.values;
             const newValues = [];
+            
             for (let i = 0; i < values.length; i++) {
                 const newRow = [];
                 for (let j = 0; j < values[i].length; j++) {
@@ -115,6 +109,7 @@ async function transformText(mode) {
                 }
                 newValues.push(newRow);
             }
+            
             range.values = newValues;
             await context.sync(); 
             updateStatus(`⬆️⬇️ Convertido para ${mode}!`, "success");
