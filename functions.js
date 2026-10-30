@@ -49,38 +49,45 @@ async function applyFilter() {
     });
 }
 
+// VERSÃO BRUTA: DIVIDE NO JS E ESCREVE VALOR DIRETO. ZERO ADDRESS. ZERO FÓRMULA.
 async function splitByDelimiter() {
     await Excel.run(async (context) => {
         try {
             const delim = document.getElementById("delimiter").value;
             if (!delim) throw new Error("Informe o delimitador!");
+            
             const range = context.workbook.getSelectedRange();
             
-            // CARREGA SÓ VALORES E ROWCOUNT. ZERO ADDRESS.
-            range.load(["values", "rowCount"]); 
+            // CARREGA SÓ OS VALORES. NADA DE ADDRESS.
+            range.load("values"); 
             await context.sync();
             
             const values = range.values;
-            const formulas = [];
+            const newValues = [];
             
             for (let i = 0; i < values.length; i++) {
-                const cellValue = values[i][0];
+                const cellValue = values[i][0]; // Pega o valor da primeira coluna da seleção
+                
                 if (typeof cellValue === 'string' && cellValue.includes(delim)) {
-                    // USA O PRÓPRIO TEXTO NA FÓRMULA PRA EVITAR REFERÊNCIA DE CÉLULA
-                    formulas.push([
-                        `=TEXTBEFORE("${cellValue.replace(/"/g, '""')}"; "${delim}")`,
-                        `=TEXTAFTER("${cellValue.replace(/"/g, '""')}"; "${delim}")`
-                    ]);
+                    // DIVIDE NO JAVASCRIPT PURO
+                    const parts = cellValue.split(delim);
+                    // Pega as duas primeiras partes (ou vazia se não tiver)
+                    const part1 = parts[0] ? parts[0].trim() : "";
+                    const part2 = parts.slice(1).join(delim).trim(); // Junta o resto caso tenha mais delimitadores
+                    newValues.push([part1, part2]);
                 } else {
-                    formulas.push([cellValue, ""]);
+                    // Se não tiver delimitador, mantém original e deixa segunda coluna vazia
+                    newValues.push([cellValue, ""]);
                 }
             }
             
-            const target = range.getOffsetRange(0, range.columnCount).getResizedRange(formulas.length - 1, 1);
-            target.formulas = formulas;
+            // ESCREVE OS VALORES DIRETAMENTE NAS CÉLULAS (2 colunas de largura)
+            // O Excel ajusta automaticamente o tamanho do range de destino
+            const targetRange = range.getOffsetRange(0, range.columnCount).getResizedRange(newValues.length - 1, 1);
+            targetRange.values = newValues; 
             
             await context.sync();
-            updateStatus("➗ Texto dividido!", "success");
+            updateStatus("➗ Texto dividido com sucesso!", "success");
         } catch (e) { 
             updateStatus("❌ Erro: " + e.message, "error"); 
             console.error(e);
