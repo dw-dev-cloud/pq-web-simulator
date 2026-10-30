@@ -116,17 +116,33 @@ async function transformText(mode) {
     await Excel.run(async (context) => {
         try {
             const range = context.workbook.getSelectedRange();
-            range.load("address");
+            // Carrega o endereço E o tamanho do range
+            range.load(["address", "rowCount", "columnCount"]); 
             await context.sync();
 
             const funcName = mode === "UPPER" ? "UPPER" : "LOWER";
-            const formula = `=${funcName}(${range.address})`;
             
-            range.formulas = [[formula]]; // Sobrescreve a própria seleção
+            // Cria um array de fórmulas com o EXATO tamanho da seleção
+            // Isso evita o erro de "dimensões não batem"
+            const formulas = [];
+            for (let i = 0; i < range.rowCount; i++) {
+                const rowFormulas = [];
+                for (let j = 0; j < range.columnCount; j++) {
+                    // Pega o endereço de cada célula individualmente
+                    const cellAddr = range.getCell(i, j).address;
+                    rowFormulas.push(`=${funcName}(${cellAddr})`);
+                }
+                formulas.push(rowFormulas);
+            }
+
+            // Aplica o array de fórmulas no mesmo range selecionado
+            range.formulas = formulas;
+            
             await context.sync();
             updateStatus(`⬆️⬇️ Convertido para ${mode}!`, "success");
-        } catch (error) {
-            updateStatus("❌ Erro: " + error.message, "error");
+        } catch (e) { 
+            updateStatus("❌ Erro: " + e.message, "error"); 
+            console.error(e);
         }
     });
 }
