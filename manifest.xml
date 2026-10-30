@@ -28,7 +28,7 @@
 
   <!-- ATENÇÃO: Este link será substituído pelo link do GitHub Pages depois -->
   <DefaultSettings>
-    <SourceLocation DefaultValue="https://SEU-USUARIO.github.io/pq-web-simulator/index.html" />
+    <SourceLocation DefaultValue="https://dw-dev-cloud.github.io/pq-web-simulator/index.html" />
   </DefaultSettings>
 
   <Permissions>ReadWriteDocument</Permissions>
