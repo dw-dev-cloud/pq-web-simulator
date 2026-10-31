@@ -42,19 +42,26 @@ async function applyFilter() {
             if (!colLetter || !val) throw new Error("Preencha a coluna e o valor!");
             
             const sheet = context.workbook.worksheets.getActiveWorksheet();
-            const range = sheet.getUsedRange();
+            const usedRange = sheet.getUsedRange();
             
-            // CARREGA SÓ O ENDEREÇO DA TABELA ORIGINAL
-            range.load("address"); 
+            // CARREGA ENDEREÇO E COLUNA DA TABELA ORIGINAL
+            usedRange.load(["address", "columnIndex"]); 
             await context.sync();
             
-            // Monta a referência da coluna inteira (ex: D:D)
-            const colRef = `${colLetter}:${colLetter}`;
+            // Calcula o índice da coluna alvo (A=0, B=1, D=3...)
+            const colIndex = colLetter.charCodeAt(0) - 65; 
             
-            // Cria a fórmula FILTER
-            const formula = `=FILTER(${range.address}; ${colRef}="${val}")`;
+            // Pega o range específico da coluna de filtro DENTRO da tabela usada
+            // Ex: se a tabela é A1:J15 e queremos D, pegamos D1:D15
+            const filterColumnRange = usedRange.getColumn(colIndex);
+            filterColumnRange.load("address");
+            await context.sync();
             
-            // DESTINO FIXO NA COLUNA N (ÍNDICE 13) - LONGE DA TABELA ORIGINAL
+            // Monta a fórmula usando o endereço EXATO da coluna (ex: $D$1:$D$15)
+            // Isso evita o erro de "argumento inválido" com D:D
+            const formula = `=FILTER(${usedRange.address}; ${filterColumnRange.address}="${val}")`;
+            
+            // DESTINO NA COLUNA N (ÍNDICE 13)
             const targetCell = sheet.getCell(0, 13); 
             targetCell.formulas = [[formula]];
             
