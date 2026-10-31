@@ -44,27 +44,36 @@ async function applyFilter() {
             const sheet = context.workbook.worksheets.getActiveWorksheet();
             const usedRange = sheet.getUsedRange();
             
-            // CARREGA SÓ O ENDEREÇO ABSOLUTO DA TABELA INTEIRA
-            usedRange.load("address"); 
+            // CARREGA TODOS OS VALORES DA TABELA
+            usedRange.load(["values", "rowCount", "columnCount"]); 
             await context.sync();
             
-            // MONTA A FÓRMULA DA FORMA MAIS SIMPLES POSSÍVEL
-            // Usando a letra da coluna direto no endereço absoluto (ex: $D$1:$D$100)
-            // Mas como não sabemos a última linha, vamos usar a referência da tabela inteira + coluna
-            // A forma mais segura no Excel Web é usar INDEX/MATCH ou FILTER com range nomeado
-            // MAS VAMOS TENTAR A SINTAXE QUE SEMPRE FUNCIONA:
+            const allValues = usedRange.values;
+            const colIndex = colLetter.charCodeAt(0) - 65; // Converte letra pra índice (A=0, D=3...)
             
-            const tableAddr = usedRange.address; // Ex: $A$1:$J$15
-            const filterAddr = `$${colLetter}$1:$${colLetter}$1000`; // Referência explícita até linha 1000
+            // FILTRA NO JAVASCRIPT PURO
+            const filteredRows = allValues.filter(row => {
+                const cellValue = row[colIndex];
+                return cellValue !== undefined && String(cellValue).trim() === val;
+            });
             
-            const formula = `=FILTER(${tableAddr}; ${filterAddr}="${val}")`;
+            if (filteredRows.length === 0) {
+                updateStatus("⚠️ Nenhum resultado encontrado!", "error");
+                return;
+            }
             
-            // DESTINO NA COLUNA N (ÍNDICE 13)
-            const targetCell = sheet.getCell(0, 13); 
-            targetCell.formulas = [[formula]];
+            // ESCREVE O RESULTADO FILTRADO NA COLUNA N (ÍNDICE 13)
+            const targetRange = sheet.getRangeByIndexes(
+                0,              // linha inicial
+                13,             // coluna N
+                filteredRows.length, // número de linhas filtradas
+                usedRange.columnCount  // número de colunas original
+            );
+            
+            targetRange.values = filteredRows;
             
             await context.sync();
-            updateStatus("🔍 Filtro aplicado na coluna N!", "success");
+            updateStatus(`🔍 Filtro aplicado! ${filteredRows.length} linhas encontradas na coluna N!`, "success");
         } catch (e) { 
             updateStatus("❌ Erro: " + e.message, "error"); 
             console.error(e);
