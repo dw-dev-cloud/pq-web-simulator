@@ -13,7 +13,23 @@ Office.onReady((info) => {
 
 // CONFIGURAÇÃO DOS EVENTOS (SUBSTITUI OS ONCLICKS)
 function setupEventListeners() {
-    // Temas
+    // 1. Lógica do Botão Escolher/Fechar
+    const toggleBtn = document.getElementById('toggle-theme-btn');
+    const themeList = document.getElementById('theme-list');
+
+    if (toggleBtn && themeList) {
+        toggleBtn.addEventListener('click', () => {
+            const isHidden = themeList.style.display === 'none';
+            
+            // Alterna a visibilidade
+            themeList.style.display = isHidden ? 'grid' : 'none';
+            
+            // Alterna o texto do botão
+            toggleBtn.innerText = isHidden ? '✖ FECHAR' : '🎨 ESCOLHER';
+        });
+    }
+
+    // 2. Lógica dos Temas (Já existente)
     document.querySelectorAll('.theme-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const theme = this.getAttribute('data-theme');
@@ -21,32 +37,44 @@ function setupEventListeners() {
         });
     });
 
-    
-function setupThemeToggle() {
+    // 3. Lógica dos Botões de Função (Já existente)
+    document.getElementById('btn-keep-cols')?.addEventListener('click', chooseColumns);
+    document.getElementById('btn-filter')?.addEventListener('click', applyFilter);
+    document.getElementById('btn-split')?.addEventListener('click', splitByDelimiter);
+    document.getElementById('btn-upper')?.addEventListener('click', () => transformText('UPPER'));
+    document.getElementById('btn-lower')?.addEventListener('click', () => transformText('LOWER'));
+}function setupEventListeners() {
+    // 1. Lógica do Botão Escolher/Fechar
     const toggleBtn = document.getElementById('toggle-theme-btn');
     const themeList = document.getElementById('theme-list');
 
     if (toggleBtn && themeList) {
         toggleBtn.addEventListener('click', () => {
-            // Alterna entre mostrar e esconder
             const isHidden = themeList.style.display === 'none';
+            
+            // Alterna a visibilidade
             themeList.style.display = isHidden ? 'grid' : 'none';
             
-            // Muda o texto do botão
-            toggleBtn.innerText = isHidden ? '✖ Fechar' : '🎨 Escolher';
+            // Alterna o texto do botão
+            toggleBtn.innerText = isHidden ? '✖ FECHAR' : '🎨 ESCOLHER';
         });
     }
+
+    // 2. Lógica dos Temas (Já existente)
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const theme = this.getAttribute('data-theme');
+            setTheme(theme);
+        });
+    });
+
+    // 3. Lógica dos Botões de Função (Já existente)
+    document.getElementById('btn-keep-cols')?.addEventListener('click', chooseColumns);
+    document.getElementById('btn-filter')?.addEventListener('click', applyFilter);
+    document.getElementById('btn-split')?.addEventListener('click', splitByDelimiter);
+    document.getElementById('btn-upper')?.addEventListener('click', () => transformText('UPPER'));
+    document.getElementById('btn-lower')?.addEventListener('click', () => transformText('LOWER'));
 }
-
-
-    // Botões de Função
-    document.getElementById('btn-keep-cols').addEventListener('click', chooseColumns);
-    document.getElementById('btn-filter').addEventListener('click', applyFilter);
-    document.getElementById('btn-split').addEventListener('click', splitByDelimiter);
-    document.getElementById('btn-upper').addEventListener('click', () => transformText('UPPER'));
-    document.getElementById('btn-lower').addEventListener('click', () => transformText('LOWER'));
-}
-
 // FUNÇÕES AUXILIARES DE UI
 function updateStatus(msg, type = "") {
     const el = document.getElementById("status");

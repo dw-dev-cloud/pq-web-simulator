@@ -91,6 +91,26 @@
     --success: #81c784; --error: #e57373; --border: #546e7a;
 }
 
+.theme-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.theme-header label {
+    margin-bottom: 0 !important; /* Remove margem extra do label */
+}
+
+#toggle-theme-btn {
+    width: auto !important;
+    padding: 6px 12px !important;
+    font-size: 12px !important;
+    margin: 0 !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
 /* RESET E ESTILOS GERAIS */
 * {
     box-sizing: border-box;
