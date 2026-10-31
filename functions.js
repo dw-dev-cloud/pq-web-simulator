@@ -88,22 +88,39 @@ function setTheme(themeName) {
 // =========================================
 // FUNÇÕES DO EXCEL
 // =========================================
-
 async function chooseColumns() {
     await Excel.run(async (context) => {
         try {
+            // 1. Pega o valor do input
             const input = document.getElementById("colsToKeep").value;
-            if (!input) throw new Error("Digite os números!");
+            if (!input) throw new Error("Digite os números das colunas!");
+            
+            // 2. Transforma texto "1,2,5" em lista de números [1, 2, 5]
             const cols = input.split(",").map(n => parseInt(n.trim()));
+            
+            // 3. Pega a planilha ativa e o intervalo usado
             const sheet = context.workbook.worksheets.getActiveWorksheet();
             const range = sheet.getUsedRange();
-            range.load("address");
-            await context.sync();
+            
+            // 4. O SEGREDO: Carrega as propriedades ANTES de usar
+            // Sem isso, o Excel não sabe quantas colunas existem
+            range.load(["address", "columnCount"]);
+            await context.sync(); 
+            
+            // 5. Cria a fórmula dinâmica CHOOSECOLS
+            // Usa ponto e vírgula (;) porque seu Excel está em PT-BR
             const formula = `=CHOOSECOLS(${range.address}; ${cols.join("; ")})`;
+            
+            // 6. Joga a fórmula 2 colunas à direita da tabela original
             sheet.getCell(0, range.columnCount + 2).formulas = [[formula]];
+            
             await context.sync();
-            updateStatus("✨ Colunas filtradas!", "success");
-        } catch (e) { updateStatus("❌ " + e.message, "error"); }
+            updateStatus("✨ Colunas mantidas com sucesso!", "success");
+            
+        } catch (e) { 
+            updateStatus("❌ Erro: " + e.message, "error"); 
+            console.error(e);
+        }
     });
 }
 
