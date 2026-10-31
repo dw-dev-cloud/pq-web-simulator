@@ -60,7 +60,7 @@ async function splitByDelimiter() {
             
             const range = context.workbook.getSelectedRange();
             
-            // CARREGA TUDO DE UMA VEZ (DIMENSÕES E VALORES)
+            // CARREGA TUDO DE UMA VEZ
             range.load(["rowCount", "columnCount", "values"]); 
             await context.sync();
             
@@ -68,35 +68,26 @@ async function splitByDelimiter() {
             const cols = range.columnCount;
             const originalValues = range.values;
             
-            // PREPARA DUAS MATRIZES: UMA PRA COLUNA ORIGINAL, OUTRA PRA NOVA
-            const newOriginalValues = [];
-            const newSideValues = [];
+            // CRIA UMA MATRIZ ÚNICA COM 2 COLUNAS (ORIGINAL + NOVA)
+            const combinedValues = [];
             
             for (let i = 0; i < rows; i++) {
-                const cellValue = originalValues[i][0]; // Pega valor da célula selecionada
+                const cellValue = originalValues[i][0]; // Pega valor da primeira coluna da seleção
                 
                 if (typeof cellValue === 'string' && cellValue.includes(delim)) {
-                    // DIVIDE NO JS PURO
                     const parts = cellValue.split(delim);
-                    const part1 = parts[0].trim(); // Primeira parte (vai pra original)
-                    const part2 = parts.slice(1).join(delim).trim(); // Resto (vai pra nova coluna)
-                    
-                    newOriginalValues.push([part1]);
-                    newSideValues.push([part2]);
+                    const part1 = parts[0].trim();
+                    const part2 = parts.slice(1).join(delim).trim();
+                    combinedValues.push([part1, part2]);
                 } else {
-                    // Se não tiver delimitador, mantém original e deixa nova vazia
-                    newOriginalValues.push([cellValue]);
-                    newSideValues.push([""]);
+                    combinedValues.push([cellValue, ""]);
                 }
             }
             
-            // ESCREVE TUDO DE UMA VEZ SÓ (CTRL+Z ÚNICO!)
-            // 1. Atualiza a coluna original com a primeira parte
-            range.values = newOriginalValues; 
-            
-            // 2. Escreve a segunda parte na coluna ao lado
-            const sideRange = range.getOffsetRange(0, cols).getResizedRange(rows - 1, 0);
-            sideRange.values = newSideValues;
+            // ESCREVE TUDO DE UMA VEZ NUM RANGE DE DESTINO (2 COLUNAS DE LARGURA)
+            // Começa na mesma linha da seleção, mas 0 colunas à direita (sobrescreve original + nova ao lado)
+            const targetRange = range.getOffsetRange(0, 0).getResizedRange(rows - 1, 1);
+            targetRange.values = combinedValues;
             
             await context.sync(); 
             updateStatus("➗ Texto dividido com sucesso!", "success");
