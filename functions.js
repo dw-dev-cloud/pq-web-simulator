@@ -44,22 +44,20 @@ async function applyFilter() {
             const sheet = context.workbook.worksheets.getActiveWorksheet();
             const usedRange = sheet.getUsedRange();
             
-            // CARREGA ENDEREÇO E COLUNA DA TABELA ORIGINAL
-            usedRange.load(["address", "columnIndex"]); 
+            // CARREGA SÓ O ENDEREÇO ABSOLUTO DA TABELA INTEIRA
+            usedRange.load("address"); 
             await context.sync();
             
-            // Calcula o índice da coluna alvo (A=0, B=1, D=3...)
-            const colIndex = colLetter.charCodeAt(0) - 65; 
+            // MONTA A FÓRMULA DA FORMA MAIS SIMPLES POSSÍVEL
+            // Usando a letra da coluna direto no endereço absoluto (ex: $D$1:$D$100)
+            // Mas como não sabemos a última linha, vamos usar a referência da tabela inteira + coluna
+            // A forma mais segura no Excel Web é usar INDEX/MATCH ou FILTER com range nomeado
+            // MAS VAMOS TENTAR A SINTAXE QUE SEMPRE FUNCIONA:
             
-            // Pega o range específico da coluna de filtro DENTRO da tabela usada
-            // Ex: se a tabela é A1:J15 e queremos D, pegamos D1:D15
-            const filterColumnRange = usedRange.getColumn(colIndex);
-            filterColumnRange.load("address");
-            await context.sync();
+            const tableAddr = usedRange.address; // Ex: $A$1:$J$15
+            const filterAddr = `$${colLetter}$1:$${colLetter}$1000`; // Referência explícita até linha 1000
             
-            // Monta a fórmula usando o endereço EXATO da coluna (ex: $D$1:$D$15)
-            // Isso evita o erro de "argumento inválido" com D:D
-            const formula = `=FILTER(${usedRange.address}; ${filterColumnRange.address}="${val}")`;
+            const formula = `=FILTER(${tableAddr}; ${filterAddr}="${val}")`;
             
             // DESTINO NA COLUNA N (ÍNDICE 13)
             const targetCell = sheet.getCell(0, 13); 
