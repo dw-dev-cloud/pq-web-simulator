@@ -4,6 +4,23 @@ Office.onReady((info) => {
         updateStatus("✅ PQ Web Simulator Pronto!", "success");
     }
 });
+// FUNÇÃO PARA TROCAR TEMA
+function setTheme(themeName) {
+    document.documentElement.setAttribute('data-theme', themeName);
+    
+    // Atualiza botão ativo
+    document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
+    event.target.classList.add('active');
+    
+    // Salva preferência (opcional)
+    localStorage.setItem('pq-theme', themeName);
+}
+
+// Carrega tema salvo ao iniciar
+const savedTheme = localStorage.getItem('pq-theme');
+if (savedTheme) {
+    document.documentElement.setAttribute('data-theme', savedTheme);
+}
 
 function updateStatus(msg, type = "") {
     const el = document.getElementById("status");
