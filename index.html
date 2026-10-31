@@ -4,28 +4,23 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PQ Web Simulator</title>
-    
     <!-- Office.js -->
     <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-    
     <!-- Seu CSS -->
     <link rel="stylesheet" href="taskpane.css">
 </head>
 <body>
     <h2>🛠️ PQ Web Simulator</h2>
 
-        <!-- SELETOR DE TEMAS OTIMIZADO -->
+    <!-- SELETOR DE TEMAS (VERSÃO FINAL LIMPA) -->
     <div class="section theme-section">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-            <label style="margin-bottom: 0;">Tema</label>
-            <!-- Botão para abrir/fechar as opções -->
-            <button id="toggle-theme-btn" style="width: auto; padding: 4px 12px; font-size: 12px; margin: 0;">
-                🎨 Escolher
-            </button>
+        <div class="theme-header">
+            <label>TEMA</label>
+            <button id="toggle-theme-btn">🎨 ESCOLHER</button>
         </div>
 
-        <!-- Lista de temas (começa escondida) -->
-        <div id="theme-list" class="theme-selector" style="display: none; margin-top: 10px;">
+        <!-- Lista começa escondida -->
+        <div id="theme-list" class="theme-selector" style="display: none;">
             <button class="theme-btn active" data-theme="dark-tech" style="background:#6c5ce7" title="Dark Tech"></button>
             <button class="theme-btn" data-theme="ocean" style="background:#3b82f6" title="Ocean"></button>
             <button class="theme-btn" data-theme="sunset" style="background:#ff6b6b" title="Sunset"></button>
@@ -39,34 +34,15 @@
         </div>
     </div>
 
-    <div class="section theme-section">
-    <div class="theme-header">
-        <label>TEMA</label>
-        <button id="toggle-theme-btn">🎨 ESCOLHER</button>
-    </div>
-
-    <!-- Lista começa escondida -->
-    <div id="theme-list" class="theme-selector" style="display: none;">
-        <!-- Seus botões de tema aqui... -->
-        <button class="theme-btn active" data-theme="dark-tech" style="background:#6c5ce7"></button>
-        <button class="theme-btn" data-theme="ocean" style="background:#3b82f6"></button>
-        <!-- ... resto dos botões ... -->
-    </div>
-</div>
-
-    
-
     <!-- CONTROLES DO SIMULADOR -->
     <div class="btn-group section">
         
-        <!-- Manter Colunas -->
         <div class="control-group">
             <label>Colunas p/ Manter (ex: 1,2,5):</label>
             <input type="text" id="colsToKeep" placeholder="1,2,5">
             <button id="btn-keep-cols">✂️ Manter Colunas</button>
         </div>
 
-        <!-- Filtro -->
         <div class="control-group">
             <label>Filtrar Coluna (letra):</label>
             <input type="text" id="filterCol" placeholder="Ex: C">
@@ -77,7 +53,6 @@
             <button id="btn-filter">🔍 Aplicar Filtro</button>
         </div>
 
-        <!-- Dividir Texto -->
         <div class="control-group">
             <label>Delimitador:</label>
             <div style="display: flex; gap: 10px;">
@@ -86,7 +61,6 @@
             </div>
         </div>
 
-        <!-- Transformar Texto -->
         <div class="control-group">
             <button id="btn-upper">⬆️ MAIÚSCULA</button>
             <button id="btn-lower">⬇️ minúscula</button>

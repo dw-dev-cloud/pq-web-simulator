@@ -7,11 +7,11 @@ Office.onReady((info) => {
     if (info.host === Office.HostType.Excel) {
         updateStatus("✅ PQ Web Simulator Pronto!", "success");
         loadSavedTheme();
-        setupEventListeners(); // <--- NOVO: Configura os cliques aqui
+        setupEventListeners(); 
     }
 });
 
-// CONFIGURAÇÃO DOS EVENTOS (SUBSTITUI OS ONCLICKS)
+// CONFIGURAÇÃO DOS EVENTOS (VERSÃO ÚNICA E CORRETA)
 function setupEventListeners() {
     // 1. Lógica do Botão Escolher/Fechar
     const toggleBtn = document.getElementById('toggle-theme-btn');
@@ -20,16 +20,12 @@ function setupEventListeners() {
     if (toggleBtn && themeList) {
         toggleBtn.addEventListener('click', () => {
             const isHidden = themeList.style.display === 'none';
-            
-            // Alterna a visibilidade
             themeList.style.display = isHidden ? 'grid' : 'none';
-            
-            // Alterna o texto do botão
             toggleBtn.innerText = isHidden ? '✖ FECHAR' : '🎨 ESCOLHER';
         });
     }
 
-    // 2. Lógica dos Temas (Já existente)
+    // 2. Lógica dos Temas
     document.querySelectorAll('.theme-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const theme = this.getAttribute('data-theme');
@@ -37,44 +33,14 @@ function setupEventListeners() {
         });
     });
 
-    // 3. Lógica dos Botões de Função (Já existente)
-    document.getElementById('btn-keep-cols')?.addEventListener('click', chooseColumns);
-    document.getElementById('btn-filter')?.addEventListener('click', applyFilter);
-    document.getElementById('btn-split')?.addEventListener('click', splitByDelimiter);
-    document.getElementById('btn-upper')?.addEventListener('click', () => transformText('UPPER'));
-    document.getElementById('btn-lower')?.addEventListener('click', () => transformText('LOWER'));
-}function setupEventListeners() {
-    // 1. Lógica do Botão Escolher/Fechar
-    const toggleBtn = document.getElementById('toggle-theme-btn');
-    const themeList = document.getElementById('theme-list');
-
-    if (toggleBtn && themeList) {
-        toggleBtn.addEventListener('click', () => {
-            const isHidden = themeList.style.display === 'none';
-            
-            // Alterna a visibilidade
-            themeList.style.display = isHidden ? 'grid' : 'none';
-            
-            // Alterna o texto do botão
-            toggleBtn.innerText = isHidden ? '✖ FECHAR' : '🎨 ESCOLHER';
-        });
-    }
-
-    // 2. Lógica dos Temas (Já existente)
-    document.querySelectorAll('.theme-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const theme = this.getAttribute('data-theme');
-            setTheme(theme);
-        });
-    });
-
-    // 3. Lógica dos Botões de Função (Já existente)
+    // 3. Lógica dos Botões de Função
     document.getElementById('btn-keep-cols')?.addEventListener('click', chooseColumns);
     document.getElementById('btn-filter')?.addEventListener('click', applyFilter);
     document.getElementById('btn-split')?.addEventListener('click', splitByDelimiter);
     document.getElementById('btn-upper')?.addEventListener('click', () => transformText('UPPER'));
     document.getElementById('btn-lower')?.addEventListener('click', () => transformText('LOWER'));
 }
+
 // FUNÇÕES AUXILIARES DE UI
 function updateStatus(msg, type = "") {
     const el = document.getElementById("status");
@@ -120,10 +86,9 @@ function setTheme(themeName) {
 }
 
 // =========================================
-// FUNÇÕES DO EXCEL (MANTIDAS IGUAIS)
+// FUNÇÕES DO EXCEL
 // =========================================
 
-// 1. MANTER COLUNAS
 async function chooseColumns() {
     await Excel.run(async (context) => {
         try {
@@ -142,15 +107,18 @@ async function chooseColumns() {
     });
 }
 
-// 2. APLICAR FILTRO
 async function applyFilter() {
+    // Validação ANTES de chamar o Excel para evitar erros feios
+    const colLetter = document.getElementById("filterCol").value.toUpperCase().trim();
+    const val = document.getElementById("filterVal").value.trim();
+    
+    if (!colLetter || !val) {
+        updateStatus("⚠️ Preencha a coluna e o valor!", "error");
+        return;
+    }
+
     await Excel.run(async (context) => {
         try {
-            const colLetter = document.getElementById("filterCol").value.toUpperCase().trim();
-            const val = document.getElementById("filterVal").value.trim();
-            
-            if (!colLetter || !val) throw new Error("Preencha a coluna e o valor!");
-            
             const sheet = context.workbook.worksheets.getActiveWorksheet();
             const usedRange = sheet.getUsedRange();
             usedRange.load(["values", "rowCount", "columnCount"]); 
@@ -169,7 +137,6 @@ async function applyFilter() {
                 return;
             }
             
-            // Escreve na coluna N (índice 13) como estava antes
             const targetRange = sheet.getRangeByIndexes(
                 0, 13, filteredRows.length, usedRange.columnCount
             );
@@ -184,7 +151,6 @@ async function applyFilter() {
     });
 }
 
-// 3. DIVIDIR TEXTO
 async function splitByDelimiter() {
     await Excel.run(async (context) => {
         try {
@@ -225,7 +191,6 @@ async function splitByDelimiter() {
     });
 }
 
-// 4. TRANSFORMAR TEXTO
 async function transformText(mode) {
     await Excel.run(async (context) => {
         try {
