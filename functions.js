@@ -92,36 +92,35 @@ async function transformText(mode) {
         try {
             const range = context.workbook.getSelectedRange();
             
-            // CARREGA SÓ O TAMANHO PRA SABER QUANTAS LINHAS TEM
-            range.load("rowCount"); 
+            // CARREGA SÓ AS DIMENSÕES (MUITO LEVE)
+            range.load(["rowCount", "columnCount"]); 
             await context.sync();
             
-            // PROCESSA LINHA POR LINHA PRA NÃO ESTOURAR PAYLOAD
-            for (let i = 0; i < range.rowCount; i++) {
-                const cell = range.getRow(i); // Pega a linha atual
-                cell.load("values");
-                await context.sync();
-                
-                const rowValues = cell.values[0];
-                const newRow = [];
-                
-                for (let j = 0; j < rowValues.length; j++) {
-                    let val = rowValues[j];
+            const rows = range.rowCount;
+            const cols = range.columnCount;
+            
+            // LOOP CÉLULA POR CÉLULA (ZERO PAYLOAD PESADO)
+            for (let i = 0; i < rows; i++) {
+                for (let j = 0; j < cols; j++) {
+                    const cell = range.getCell(i, j);
+                    
+                    // CARREGA SÓ ESTA CÉLULA
+                    cell.load("values");
+                    await context.sync();
+                    
+                    let val = cell.values[0][0];
                     if (typeof val === 'string' && val.trim() !== '') {
-                        newRow.push(mode === "UPPER" ? val.toUpperCase() : val.toLowerCase());
-                    } else {
-                        newRow.push(val);
+                        // TRANSFORMA E ESCREVE IMEDIATAMENTE
+                        cell.values = [[mode === "UPPER" ? val.toUpperCase() : val.toLowerCase()]];
+                        await context.sync();
                     }
                 }
-                
-                // ESCREVE DE VOLTA IMEDIATAMENTE (LEVE E SEGURO)
-                cell.values = [newRow];
-                await context.sync();
             }
             
             updateStatus(`⬆️⬇️ Convertido para ${mode}!`, "success");
         } catch (e) { 
             updateStatus("❌ Erro: " + e.message, "error"); 
+            console.error(e);
         }
     });
 }
