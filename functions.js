@@ -21,6 +21,24 @@ function setupEventListeners() {
         });
     });
 
+    
+function setupThemeToggle() {
+    const toggleBtn = document.getElementById('toggle-theme-btn');
+    const themeList = document.getElementById('theme-list');
+
+    if (toggleBtn && themeList) {
+        toggleBtn.addEventListener('click', () => {
+            // Alterna entre mostrar e esconder
+            const isHidden = themeList.style.display === 'none';
+            themeList.style.display = isHidden ? 'grid' : 'none';
+            
+            // Muda o texto do botão
+            toggleBtn.innerText = isHidden ? '✖ Fechar' : '🎨 Escolher';
+        });
+    }
+}
+
+
     // Botões de Função
     document.getElementById('btn-keep-cols').addEventListener('click', chooseColumns);
     document.getElementById('btn-filter').addEventListener('click', applyFilter);

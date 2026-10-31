@@ -14,11 +14,18 @@
 <body>
     <h2>🛠️ PQ Web Simulator</h2>
 
-    <!-- SELETOR DE TEMAS -->
+        <!-- SELETOR DE TEMAS OTIMIZADO -->
     <div class="section theme-section">
-        <label>Escolha seu Tema:</label>
-        <div class="theme-selector">
-            <!-- Note que removi o onclick e adicionei data-theme -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <label style="margin-bottom: 0;">Tema</label>
+            <!-- Botão para abrir/fechar as opções -->
+            <button id="toggle-theme-btn" style="width: auto; padding: 4px 12px; font-size: 12px; margin: 0;">
+                🎨 Escolher
+            </button>
+        </div>
+
+        <!-- Lista de temas (começa escondida) -->
+        <div id="theme-list" class="theme-selector" style="display: none; margin-top: 10px;">
             <button class="theme-btn active" data-theme="dark-tech" style="background:#6c5ce7" title="Dark Tech"></button>
             <button class="theme-btn" data-theme="ocean" style="background:#3b82f6" title="Ocean"></button>
             <button class="theme-btn" data-theme="sunset" style="background:#ff6b6b" title="Sunset"></button>
@@ -31,6 +38,8 @@
             <button class="theme-btn" data-theme="slate" style="background:#78909c" title="Slate"></button>
         </div>
     </div>
+
+    
 
     <!-- CONTROLES DO SIMULADOR -->
     <div class="btn-group section">
