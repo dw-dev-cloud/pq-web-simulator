@@ -1,8 +1,7 @@
 /* =========================================
-   PQ WEB SIMULATOR - DESIGN SYSTEM
+   PQ WEB SIMULATOR - DESIGN SYSTEM FINAL
    ========================================= */
 
-/* IMPORTANDO FONTE MODERNA */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 /* VARIÁVEIS GLOBAIS (TEMA PADRÃO: DARK TECH) */
@@ -12,7 +11,7 @@
     --bg-input: #3c3c3c;
     --text-primary: #ffffff;
     --text-secondary: #cccccc;
-    --primary: #6c5ce7;       /* Roxo Vibrante */
+    --primary: #6c5ce7;
     --primary-hover: #5a4ad1;
     --success: #00b894;
     --error: #d63031;
@@ -92,103 +91,34 @@
     --success: #81c784; --error: #e57373; --border: #546e7a;
 }
 
-/* ESTILOS GERAIS */
+/* RESET E ESTILOS GERAIS */
+* {
+    box-sizing: border-box;
+}
+
 body {
     font-family: 'Inter', sans-serif;
-    background-color: var(--bg-body);
-    color: var(--text-primary);
-    margin: 0; padding: 20px;
+    background-color: var(--bg-body) !important;
+    color: var(--text-primary) !important;
+    margin: 0; 
+    padding: 20px;
     transition: background 0.3s, color 0.3s;
 }
 
-h2 { 
-    color: var(--primary); 
-    text-align: center; 
-    margin-bottom: 25px; 
-    font-weight: 700;
-    letter-spacing: -0.5px;
+h2, h3, .ms-font-l, .ms-font-m, .ms-font-s {
+    color: var(--text-primary) !important;
 }
 
-.section {
-    background: var(--bg-panel);
-    padding: 16px;
-    border-radius: 12px;
-    margin-bottom: 16px;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
-}
-
-label {
-    display: block;
-    margin-bottom: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--text-secondary);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-input {
-    width: 100%;
-    padding: 10px 12px;
-    margin-bottom: 12px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    background: var(--bg-input);
-    color: var(--text-primary);
-    font-size: 14px;
-    box-sizing: border-box;
-    transition: border-color 0.2s;
-}
-
-input:focus {
-    outline: none;
-    border-color: var(--primary);
-}
-
-button {
-    width: 100%;
-    padding: 12px;
-    margin-top: 8px;
-    border: none;
-    border-radius: 8px;
-    background: var(--primary);
-    color: white;
-    font-weight: 600;
-    font-size: 14px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-}
-
-button:hover {
-    background: var(--primary-hover);
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
-
-button:active {
-    transform: translateY(0);
-}
-
-#status {
-    margin-top: 15px;
-    padding: 10px;
-    border-radius: 8px;
-    text-align: center;
-    font-size: 13px;
-    font-weight: 500;
-}
-
-.success { background: rgba(0, 184, 148, 0.2); color: var(--success); border: 1px solid var(--success); }
-.error { background: rgba(214, 48, 49, 0.2); color: var(--error); border: 1px solid var(--error); }
-
-/* SELETOR DE TEMAS (NOVO!) */
+/* SELETOR DE TEMAS */
 .theme-selector {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 8px;
     margin-bottom: 20px;
+    padding: 12px;
+    background: var(--bg-panel);
+    border-radius: 12px;
+    border: 1px solid var(--border);
 }
 
 .theme-btn {
@@ -196,45 +126,139 @@ button:active {
     border-radius: 6px;
     border: 2px solid transparent;
     cursor: pointer;
-    transition: transform 0.2s;
+    transition: transform 0.2s, border-color 0.2s;
     padding: 0;
     margin: 0;
+    width: 100%;
 }
 
-.theme-btn:hover { transform: scale(1.1); }
-.theme-btn.active { border-color: var(--text-primary); }
+.theme-btn:hover { 
+    transform: scale(1.1); 
+}
 
-/* ESTILIZA BOTÕES DE FUNÇÃO COM AS VARIÁVEIS DO TEMA */
-.btn-group button, 
-button:not(.theme-btn) {
-    background: var(--primary) !important;
-    color: white !important;
-    border: none !important;
-    border-radius: 8px !important;
+.theme-btn.active { 
+    border-color: var(--text-primary); 
+    box-shadow: 0 0 0 2px var(--primary);
+}
+
+/* SEÇÕES E PAINÉIS */
+.section, .ms-Panel-contentInner, .ms-CommandBar {
+    background: var(--bg-panel) !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 12px !important;
+    padding: 16px !important;
+    margin-bottom: 16px !important;
+    box-shadow: var(--shadow);
+}
+
+/* LABELS E TEXTOS */
+label, .ms-Label, .ms-TextField-label {
+    color: var(--text-secondary) !important;
+    font-size: 12px !important;
     font-weight: 600 !important;
-    transition: all 0.3s ease !important;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+    margin-bottom: 8px !important;
+    display: block !important;
 }
 
-.btn-group button:hover,
-button:not(.theme-btn):hover {
-    background: var(--primary-hover) !important;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-}
-
-/* ESTILIZA INPUTS COM O TEMA */
-input {
+/* INPUTS E CAMPOS DE TEXTO */
+input, textarea, select, .ms-TextField-field, .ms-Dropdown-title {
+    width: 100% !important;
+    padding: 10px 12px !important;
+    margin-bottom: 12px !important;
+    border: 1px solid var(--border) !important;
+    border-radius: 8px !important;
     background: var(--bg-input) !important;
     color: var(--text-primary) !important;
-    border: 1px solid var(--border) !important;
+    font-size: 14px !important;
+    transition: border-color 0.2s !important;
 }
 
-input:focus {
+input:focus, textarea:focus, select:focus, .ms-TextField-field:focus {
+    outline: none !important;
     border-color: var(--primary) !important;
+    box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2) !important;
 }
 
-/* ESTILIZA LABELS */
-label {
-    color: var(--text-secondary) !important;
+/* BOTÕES DE FUNÇÃO (O SEGREDO TÁ AQUI!) */
+button, .ms-Button, .ms-PrimaryButton, .ms-CommandBarButton {
+    width: 100% !important;
+    padding: 12px !important;
+    margin-top: 8px !important;
+    margin-bottom: 8px !important;
+    border: none !important;
+    border-radius: 8px !important;
+    background: var(--primary) !important;
+    color: white !important;
+    font-weight: 600 !important;
+    font-size: 14px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2) !important;
+    text-transform: uppercase !important;
+    letter-spacing: 0.5px !important;
+}
+
+button:hover, .ms-Button:hover, .ms-PrimaryButton:hover {
+    background: var(--primary-hover) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3) !important;
+}
+
+button:active, .ms-Button:active {
+    transform: translateY(0) !important;
+}
+
+/* BOTÕES DE TEMA (EXCEÇÃO - NÃO APPLYAR ESTILO DE FUNÇÃO) */
+.theme-btn {
+    background: inherit !important; /* Mantém a cor inline do HTML */
+    width: auto !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    text-transform: none !important;
+    letter-spacing: normal !important;
+    box-shadow: none !important;
+}
+
+/* MENSAGENS DE STATUS */
+#status, .ms-MessageBar {
+    margin-top: 15px !important;
+    padding: 10px !important;
+    border-radius: 8px !important;
+    text-align: center !important;
+    font-size: 13px !important;
+    font-weight: 500 !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+}
+
+.success { 
+    background: rgba(0, 184, 148, 0.2) !important; 
+    color: var(--success) !important; 
+    border-color: var(--success) !important; 
+}
+
+.error { 
+    background: rgba(214, 48, 49, 0.2) !important; 
+    color: var(--error) !important; 
+    border-color: var(--error) !important; 
+}
+
+/* SCROLLBAR PERSONALIZADA */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-body);
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--primary);
 }
