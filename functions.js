@@ -90,7 +90,6 @@ async function transformText(mode) {
     await Excel.run(async (context) => {
         try {
             const range = context.workbook.getSelectedRange();
-            // CARREGA SÓ VALUES. SEM ADDRESS. SEM PAYLOAD PESADO.
             range.load("values"); 
             await context.sync(); 
             
