@@ -36,18 +36,38 @@ async function chooseColumns() {
 async function applyFilter() {
     await Excel.run(async (context) => {
         try {
-            const col = document.getElementById("filterCol").value.toUpperCase();
-            const val = document.getElementById("filterVal").value;
-            if (!col || !val) throw new Error("Preencha tudo!");
+            const colLetter = document.getElementById("filterCol").value.toUpperCase().trim();
+            const val = document.getElementById("filterVal").value.trim();
+            
+            if (!colLetter || !val) throw new Error("Preencha a coluna e o valor!");
+            
             const sheet = context.workbook.worksheets.getActiveWorksheet();
             const range = sheet.getUsedRange();
-            range.load("address");
+            
+            // CARREGA ENDEREÇO E TAMANHO ANTES DE USAR
+            range.load(["address", "columnCount", "rowCount"]); 
             await context.sync();
-            const formula = `=FILTER(${range.address}; ${col}:${col}="${val}")`;
-            sheet.getCell(0, range.columnCount + 2).formulas = [[formula]];
+            
+            // Converte letra da coluna (ex: "D") para número (ex: 4) pra montar a referência
+            // Mas como estamos usando fórmula FILTER, podemos usar direto a letra se formatarmos certo
+            // Vamos usar a abordagem mais segura: construir a referência da coluna inteira
+            
+            // Pega a letra da coluna e monta o intervalo inteiro (ex: D:D)
+            const colRef = `${colLetter}:${colLetter}`;
+            
+            // Cria a fórmula FILTER dinâmica
+            const formula = `=FILTER(${range.address}; ${colRef}="${val}")`;
+            
+            // Define onde a tabela filtrada vai aparecer (2 colunas à direita da original)
+            const targetCell = sheet.getCell(0, range.columnCount + 2);
+            targetCell.formulas = [[formula]];
+            
             await context.sync();
-            updateStatus("🔍 Filtro aplicado!", "success");
-        } catch (e) { updateStatus("❌ " + e.message, "error"); }
+            updateStatus("🔍 Filtro aplicado com sucesso!", "success");
+        } catch (e) { 
+            updateStatus("❌ Erro: " + e.message, "error"); 
+            console.error(e);
+        }
     });
 }
 
