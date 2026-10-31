@@ -44,26 +44,22 @@ async function applyFilter() {
             const sheet = context.workbook.worksheets.getActiveWorksheet();
             const range = sheet.getUsedRange();
             
-            // CARREGA ENDEREÇO E TAMANHO ANTES DE USAR
-            range.load(["address", "columnCount", "rowCount"]); 
+            // CARREGA SÓ O ENDEREÇO DA TABELA ORIGINAL
+            range.load("address"); 
             await context.sync();
             
-            // Converte letra da coluna (ex: "D") para número (ex: 4) pra montar a referência
-            // Mas como estamos usando fórmula FILTER, podemos usar direto a letra se formatarmos certo
-            // Vamos usar a abordagem mais segura: construir a referência da coluna inteira
-            
-            // Pega a letra da coluna e monta o intervalo inteiro (ex: D:D)
+            // Monta a referência da coluna inteira (ex: D:D)
             const colRef = `${colLetter}:${colLetter}`;
             
-            // Cria a fórmula FILTER dinâmica
+            // Cria a fórmula FILTER
             const formula = `=FILTER(${range.address}; ${colRef}="${val}")`;
             
-            // Define onde a tabela filtrada vai aparecer (2 colunas à direita da original)
-            const targetCell = sheet.getCell(0, range.columnCount + 2);
+            // DESTINO FIXO NA COLUNA N (ÍNDICE 13) - LONGE DA TABELA ORIGINAL
+            const targetCell = sheet.getCell(0, 13); 
             targetCell.formulas = [[formula]];
             
             await context.sync();
-            updateStatus("🔍 Filtro aplicado com sucesso!", "success");
+            updateStatus("🔍 Filtro aplicado na coluna N!", "success");
         } catch (e) { 
             updateStatus("❌ Erro: " + e.message, "error"); 
             console.error(e);
