@@ -1,60 +1,35 @@
-// INICIALIZAÇÃO
+/* =========================================
+   PQ WEB SIMULATOR - LÓGICA & EVENTOS
+   ========================================= */
+
+// INICIALIZAÇÃO DO OFFICE
 Office.onReady((info) => {
     if (info.host === Office.HostType.Excel) {
         updateStatus("✅ PQ Web Simulator Pronto!", "success");
-        
-        // Carrega tema salvo APÓS o Office estar pronto (mais seguro)
         loadSavedTheme();
+        setupEventListeners(); // <--- NOVO: Configura os cliques aqui
     }
 });
 
-// FUNÇÃO PARA CARREGAR TEMA SALVO (SEGURA)
-function loadSavedTheme() {
-    try {
-        const savedTheme = localStorage.getItem('pq-theme');
-        if (savedTheme) {
-            document.documentElement.setAttribute('data-theme', savedTheme);
-            
-            // Marca o botão correto como ativo
-            setTimeout(() => {
-                const buttons = document.querySelectorAll('.theme-btn');
-                buttons.forEach(btn => {
-                    const onclickAttr = btn.getAttribute('onclick') || '';
-                    if (onclickAttr.includes(savedTheme)) {
-                        btn.classList.add('active');
-                    }
-                });
-            }, 100);
-        }
-    } catch (e) {
-        console.log('Tema padrão carregado');
-    }
-}
-
-// FUNÇÃO PARA TROCAR TEMA
-function setTheme(themeName) {
-    document.documentElement.setAttribute('data-theme', themeName);
-    
-    // Atualiza botão ativo
-    const buttons = document.querySelectorAll('.theme-btn');
-    buttons.forEach(btn => btn.classList.remove('active'));
-    
-    // Encontra o botão clicado pelo tema
-    buttons.forEach(btn => {
-        const onclickAttr = btn.getAttribute('onclick') || '';
-        if (onclickAttr.includes(themeName)) {
-            btn.classList.add('active');
-        }
+// CONFIGURAÇÃO DOS EVENTOS (SUBSTITUI OS ONCLICKS)
+function setupEventListeners() {
+    // Temas
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const theme = this.getAttribute('data-theme');
+            setTheme(theme);
+        });
     });
-    
-    // Salva preferência
-    try {
-        localStorage.setItem('pq-theme', themeName);
-    } catch (e) {
-        console.log('Não foi possível salvar tema');
-    }
+
+    // Botões de Função
+    document.getElementById('btn-keep-cols').addEventListener('click', chooseColumns);
+    document.getElementById('btn-filter').addEventListener('click', applyFilter);
+    document.getElementById('btn-split').addEventListener('click', splitByDelimiter);
+    document.getElementById('btn-upper').addEventListener('click', () => transformText('UPPER'));
+    document.getElementById('btn-lower').addEventListener('click', () => transformText('LOWER'));
 }
 
+// FUNÇÕES AUXILIARES DE UI
 function updateStatus(msg, type = "") {
     const el = document.getElementById("status");
     if (el) {
@@ -62,6 +37,45 @@ function updateStatus(msg, type = "") {
         el.className = type;
     }
 }
+
+function loadSavedTheme() {
+    try {
+        const savedTheme = localStorage.getItem('pq-theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            setTimeout(() => {
+                const buttons = document.querySelectorAll('.theme-btn');
+                buttons.forEach(btn => {
+                    if (btn.getAttribute('data-theme') === savedTheme) {
+                        btn.classList.add('active');
+                    } else {
+                        btn.classList.remove('active');
+                    }
+                });
+            }, 100);
+        }
+    } catch (e) { console.log('Tema padrão carregado'); }
+}
+
+function setTheme(themeName) {
+    document.documentElement.setAttribute('data-theme', themeName);
+    
+    const buttons = document.querySelectorAll('.theme-btn');
+    buttons.forEach(btn => {
+        if (btn.getAttribute('data-theme') === themeName) {
+            btn.classList.add('active');
+        } else {
+            btn.classList.remove('active');
+        }
+    });
+    
+    try { localStorage.setItem('pq-theme', themeName); } 
+    catch (e) { console.log('Não foi possível salvar tema'); }
+}
+
+// =========================================
+// FUNÇÕES DO EXCEL (MANTIDAS IGUAIS)
+// =========================================
 
 // 1. MANTER COLUNAS
 async function chooseColumns() {
@@ -93,7 +107,6 @@ async function applyFilter() {
             
             const sheet = context.workbook.worksheets.getActiveWorksheet();
             const usedRange = sheet.getUsedRange();
-            
             usedRange.load(["values", "rowCount", "columnCount"]); 
             await context.sync();
             
@@ -110,10 +123,10 @@ async function applyFilter() {
                 return;
             }
             
+            // Escreve na coluna N (índice 13) como estava antes
             const targetRange = sheet.getRangeByIndexes(
                 0, 13, filteredRows.length, usedRange.columnCount
             );
-            
             targetRange.values = filteredRows;
             
             await context.sync();
@@ -143,7 +156,6 @@ async function splitByDelimiter() {
             
             for (let i = 0; i < rows; i++) {
                 const cellValue = originalValues[i][0];
-                
                 if (typeof cellValue === 'string' && cellValue.includes(delim)) {
                     const parts = cellValue.split(delim);
                     part1Values.push([parts[0].trim()]);
@@ -195,7 +207,6 @@ async function transformText(mode) {
             
             range.values = newValues;
             await context.sync(); 
-            
             updateStatus(`⬆️⬇️ Convertido para ${mode}!`, "success");
         } catch (e) { 
             updateStatus("❌ Erro: " + e.message, "error"); 

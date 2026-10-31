@@ -3,70 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PQ Web Simulator</title>
+    
+    <!-- Office.js -->
     <script src="https://appsforoffice.microsoft.com/lib/1/hosted/office.js"></script>
-    <style>
-        body { font-family: 'Segoe UI', sans-serif; padding: 20px; background: #f3f2f1; }
-        h2 { color: #0078d4; margin-top: 0; }
-        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-bottom: 20px; }
-        button { padding: 10px; background: #0078d4; color: white; border: none; border-radius: 4px; cursor: pointer; }
-        button:hover { background: #005a9e; }
-        input { padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; margin-bottom: 5px; }
-        label { font-weight: bold; font-size: 13px; display: block; margin-bottom: 3px; }
-        #status { margin-top: 15px; padding: 10px; border-radius: 4px; font-size: 13px; min-height: 20px; }
-        .success { background: #dff6dd; color: #107c10; }
-        .error { background: #fde7e9; color: #a80000; }
-    </style>
+    
+    <!-- Seu CSS -->
+    <link rel="stylesheet" href="taskpane.css">
 </head>
 <body>
     <h2>🛠️ PQ Web Simulator</h2>
 
-        <!-- SELETOR DE TEMAS (NOVO - COLE AQUI!) -->
-    <div class="section" style="padding: 12px; margin-bottom: 20px;">
-        <label style="margin-bottom: 8px;">Escolha seu Tema:</label>
+    <!-- SELETOR DE TEMAS -->
+    <div class="section theme-section">
+        <label>Escolha seu Tema:</label>
         <div class="theme-selector">
-            <button class="theme-btn active" style="background:#6c5ce7" onclick="setTheme('dark-tech')" title="Dark Tech"></button>
-            <button class="theme-btn" style="background:#3b82f6" onclick="setTheme('ocean')" title="Ocean"></button>
-            <button class="theme-btn" style="background:#ff6b6b" onclick="setTheme('sunset')" title="Sunset"></button>
-            <button class="theme-btn" style="background:#4caf50" onclick="setTheme('forest')" title="Forest"></button>
-            <button class="theme-btn" style="background:#ff00ff" onclick="setTheme('cyberpunk')" title="Cyberpunk"></button>
-            <button class="theme-btn" style="background:#228be6" onclick="setTheme('light')" title="Light"></button>
-            <button class="theme-btn" style="background:#d4af37" onclick="setTheme('royal')" title="Royal"></button>
-            <button class="theme-btn" style="background:#4e54c8" onclick="setTheme('midnight')" title="Midnight"></button>
-            <button class="theme-btn" style="background:#e53935" onclick="setTheme('cherry')" title="Cherry"></button>
-            <button class="theme-btn" style="background:#78909c" onclick="setTheme('slate')" title="Slate"></button>
+            <!-- Note que removi o onclick e adicionei data-theme -->
+            <button class="theme-btn active" data-theme="dark-tech" style="background:#6c5ce7" title="Dark Tech"></button>
+            <button class="theme-btn" data-theme="ocean" style="background:#3b82f6" title="Ocean"></button>
+            <button class="theme-btn" data-theme="sunset" style="background:#ff6b6b" title="Sunset"></button>
+            <button class="theme-btn" data-theme="forest" style="background:#4caf50" title="Forest"></button>
+            <button class="theme-btn" data-theme="cyberpunk" style="background:#ff00ff" title="Cyberpunk"></button>
+            <button class="theme-btn" data-theme="light" style="background:#228be6" title="Light"></button>
+            <button class="theme-btn" data-theme="royal" style="background:#d4af37" title="Royal"></button>
+            <button class="theme-btn" data-theme="midnight" style="background:#4e54c8" title="Midnight"></button>
+            <button class="theme-btn" data-theme="cherry" style="background:#e53935" title="Cherry"></button>
+            <button class="theme-btn" data-theme="slate" style="background:#78909c" title="Slate"></button>
         </div>
     </div>
 
-    <!-- SEU DIV ORIGINAL (BOTÕES ATUAIS) -->
-    <div class="btn-group">
-        <!-- Seus inputs e botões atuais continuam aqui! -->
-        <!-- Não apaga nada disso, só adiciona o bloco novo em cima -->
+    <!-- CONTROLES DO SIMULADOR -->
+    <div class="btn-group section">
+        
+        <!-- Manter Colunas -->
+        <div class="control-group">
+            <label>Colunas p/ Manter (ex: 1,2,5):</label>
+            <input type="text" id="colsToKeep" placeholder="1,2,5">
+            <button id="btn-keep-cols">✂️ Manter Colunas</button>
+        </div>
+
+        <!-- Filtro -->
+        <div class="control-group">
+            <label>Filtrar Coluna (letra):</label>
+            <input type="text" id="filterCol" placeholder="Ex: C">
+            
+            <label>Valor:</label>
+            <input type="text" id="filterVal" placeholder="Ex: JP">
+            
+            <button id="btn-filter">🔍 Aplicar Filtro</button>
+        </div>
+
+        <!-- Dividir Texto -->
+        <div class="control-group">
+            <label>Delimitador:</label>
+            <div style="display: flex; gap: 10px;">
+                <input type="text" id="delimiter" value="-" style="width: 60px;">
+                <button id="btn-split" style="flex: 1;">➗ Dividir Texto</button>
+            </div>
+        </div>
+
+        <!-- Transformar Texto -->
+        <div class="control-group">
+            <button id="btn-upper">⬆️ MAIÚSCULA</button>
+            <button id="btn-lower">⬇️ minúscula</button>
+        </div>
+
     </div>
 
-    <!-- SCRIPTS NO FINAL -->
+    <!-- STATUS -->
+    <div id="status">Carregando...</div>
+
+    <!-- Seu JS -->
     <script src="functions.js"></script>
-
-    
-    <div class="btn-group">
-        <label>Colunas p/ Manter (ex: 1,2,5):</label>
-        <input type="text" id="colsToKeep" placeholder="1,2,5">
-        <button onclick="chooseColumns()">✂️ Manter Colunas</button>
-
-        <label>Filtrar Coluna (letra):</label>
-        <input type="text" id="filterCol" placeholder="Ex: C">
-        <label>Valor:</label>
-        <input type="text" id="filterVal" placeholder="Ex: JP">
-        <button onclick="applyFilter()">🔍 Aplicar Filtro</button>
-
-        <label>Delimitador:</label>
-        <input type="text" id="delimiter" value="-" style="width: 60px;">
-        <button onclick="splitByDelimiter()">➗ Dividir Texto</button>
-
-        <button onclick="transformText('UPPER')">️ MAIÚSCULA</button>
-        <button onclick="transformText('LOWER')">️ minúscula</button>
-    </div>
-
-    <div id="status"> Carregando...</div>
-    <script src="https://dw-dev-cloud.github.io/pq-web-simulator/functions.js"></script>
 </body>
 </html>
