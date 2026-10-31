@@ -59,35 +59,47 @@ async function splitByDelimiter() {
             if (!delim) throw new Error("Informe o delimitador!");
             
             const range = context.workbook.getSelectedRange();
-            range.load(["rowCount", "columnCount"]);
+            
+            // CARREGA TUDO DE UMA VEZ (DIMENSÕES E VALORES)
+            range.load(["rowCount", "columnCount", "values"]); 
             await context.sync();
             
             const rows = range.rowCount;
             const cols = range.columnCount;
+            const originalValues = range.values;
             
-            // PROCESSA CÉLULA POR CÉLULA PRA EVITAR PAYLOAD
+            // PREPARA DUAS MATRIZES: UMA PRA COLUNA ORIGINAL, OUTRA PRA NOVA
+            const newOriginalValues = [];
+            const newSideValues = [];
+            
             for (let i = 0; i < rows; i++) {
-                const cell = range.getCell(i, 0); // Só primeira coluna da seleção
-                cell.load("values");
-                await context.sync();
+                const cellValue = originalValues[i][0]; // Pega valor da célula selecionada
                 
-                let val = cell.values[0][0];
-                if (typeof val === 'string' && val.includes(delim)) {
-                    const parts = val.split(delim);
-                    const part1 = parts[0].trim();
-                    const part2 = parts.slice(1).join(delim).trim();
+                if (typeof cellValue === 'string' && cellValue.includes(delim)) {
+                    // DIVIDE NO JS PURO
+                    const parts = cellValue.split(delim);
+                    const part1 = parts[0].trim(); // Primeira parte (vai pra original)
+                    const part2 = parts.slice(1).join(delim).trim(); // Resto (vai pra nova coluna)
                     
-                    // ESCREVE NAS DUAS COLUNAS AO LADO
-                    const targetCell1 = cell.getOffsetRange(0, cols);
-                    const targetCell2 = cell.getOffsetRange(0, cols + 1);
-                    
-                    targetCell1.values = [[part1]];
-                    targetCell2.values = [[part2]];
-                    await context.sync();
+                    newOriginalValues.push([part1]);
+                    newSideValues.push([part2]);
+                } else {
+                    // Se não tiver delimitador, mantém original e deixa nova vazia
+                    newOriginalValues.push([cellValue]);
+                    newSideValues.push([""]);
                 }
             }
             
-            updateStatus("➗ Texto dividido!", "success");
+            // ESCREVE TUDO DE UMA VEZ SÓ (CTRL+Z ÚNICO!)
+            // 1. Atualiza a coluna original com a primeira parte
+            range.values = newOriginalValues; 
+            
+            // 2. Escreve a segunda parte na coluna ao lado
+            const sideRange = range.getOffsetRange(0, cols).getResizedRange(rows - 1, 0);
+            sideRange.values = newSideValues;
+            
+            await context.sync(); 
+            updateStatus("➗ Texto dividido com sucesso!", "success");
         } catch (e) { 
             updateStatus("❌ Erro: " + e.message, "error"); 
             console.error(e);
