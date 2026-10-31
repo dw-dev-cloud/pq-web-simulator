@@ -60,34 +60,36 @@ async function splitByDelimiter() {
             
             const range = context.workbook.getSelectedRange();
             
-            // CARREGA TUDO DE UMA VEZ
-            range.load(["rowCount", "columnCount", "values"]); 
+            // CARREGA SÓ O NECESSÁRIO
+            range.load(["rowCount", "values"]); 
             await context.sync();
             
             const rows = range.rowCount;
-            const cols = range.columnCount;
             const originalValues = range.values;
             
-            // CRIA UMA MATRIZ ÚNICA COM 2 COLUNAS (ORIGINAL + NOVA)
-            const combinedValues = [];
+            // PREPARA DUAS MATRIZES UNIDIMENSIONAIS (UMA COLUNA CADA)
+            const part1Values = [];
+            const part2Values = [];
             
             for (let i = 0; i < rows; i++) {
-                const cellValue = originalValues[i][0]; // Pega valor da primeira coluna da seleção
+                const cellValue = originalValues[i][0];
                 
                 if (typeof cellValue === 'string' && cellValue.includes(delim)) {
                     const parts = cellValue.split(delim);
-                    const part1 = parts[0].trim();
-                    const part2 = parts.slice(1).join(delim).trim();
-                    combinedValues.push([part1, part2]);
+                    part1Values.push([parts[0].trim()]); // Matriz [[val], [val], ...]
+                    part2Values.push([parts.slice(1).join(delim).trim()]);
                 } else {
-                    combinedValues.push([cellValue, ""]);
+                    part1Values.push([cellValue]);
+                    part2Values.push([""]);
                 }
             }
             
-            // ESCREVE TUDO DE UMA VEZ NUM RANGE DE DESTINO (2 COLUNAS DE LARGURA)
-            // Começa na mesma linha da seleção, mas 0 colunas à direita (sobrescreve original + nova ao lado)
-            const targetRange = range.getOffsetRange(0, 0).getResizedRange(rows - 1, 1);
-            targetRange.values = combinedValues;
+            // ESCREVE A PRIMEIRA PARTE NA SELEÇÃO ORIGINAL
+            range.values = part1Values;
+            
+            // ESCREVE A SEGUNDA PARTE NA COLUNA AO LADO (OFFSET DE 1 COLUNA)
+            const sideRange = range.getOffsetRange(0, 1); // Move 1 coluna à direita
+            sideRange.values = part2Values;
             
             await context.sync(); 
             updateStatus("➗ Texto dividido com sucesso!", "success");
@@ -97,7 +99,6 @@ async function splitByDelimiter() {
         }
     });
 }
-
 // 4. TRANSFORMAR TEXTO (CÉLULA POR CÉLULA, ZERO PAYLOAD)
 async function transformText(mode) {
     await Excel.run(async (context) => {
