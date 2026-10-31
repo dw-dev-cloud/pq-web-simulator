@@ -13,6 +13,7 @@ function updateStatus(msg, type = "") {
     }
 }
 
+// 1. MANTER COLUNAS (Usa fórmula única, leve)
 async function chooseColumns() {
     await Excel.run(async (context) => {
         try {
@@ -31,6 +32,7 @@ async function chooseColumns() {
     });
 }
 
+// 2. APLICAR FILTRO (Usa fórmula única, leve)
 async function applyFilter() {
     await Excel.run(async (context) => {
         try {
@@ -49,7 +51,7 @@ async function applyFilter() {
     });
 }
 
-// VERSÃO BRUTA: DIVIDE NO JS E ESCREVE VALOR DIRETO. ZERO ADDRESS. ZERO FÓRMULA.
+// 3. DIVIDIR TEXTO (VALORES PUROS, CÉLULA POR CÉLULA, ZERO ADDRESS)
 async function splitByDelimiter() {
     await Excel.run(async (context) => {
         try {
@@ -57,27 +59,34 @@ async function splitByDelimiter() {
             if (!delim) throw new Error("Informe o delimitador!");
             
             const range = context.workbook.getSelectedRange();
-            
-            // PASSO CRUCIAL: Carregar address E rowCount ANTES de usar
-            range.load(["address", "rowCount"]); 
+            range.load(["rowCount", "columnCount"]);
             await context.sync();
             
-            const formulas = [];
-            // Loop seguro criando fórmula individual por linha
-            for (let i = 0; i < range.rowCount; i++) {
-                const cellAddr = range.getCell(i, 0).address;
-                formulas.push([
-                    `=TEXTBEFORE(${cellAddr}; "${delim}")`,
-                    `=TEXTAFTER(${cellAddr}; "${delim}")`
-                ]);
+            const rows = range.rowCount;
+            const cols = range.columnCount;
+            
+            // PROCESSA CÉLULA POR CÉLULA PRA EVITAR PAYLOAD
+            for (let i = 0; i < rows; i++) {
+                const cell = range.getCell(i, 0); // Só primeira coluna da seleção
+                cell.load("values");
+                await context.sync();
+                
+                let val = cell.values[0][0];
+                if (typeof val === 'string' && val.includes(delim)) {
+                    const parts = val.split(delim);
+                    const part1 = parts[0].trim();
+                    const part2 = parts.slice(1).join(delim).trim();
+                    
+                    // ESCREVE NAS DUAS COLUNAS AO LADO
+                    const targetCell1 = cell.getOffsetRange(0, cols);
+                    const targetCell2 = cell.getOffsetRange(0, cols + 1);
+                    
+                    targetCell1.values = [[part1]];
+                    targetCell2.values = [[part2]];
+                    await context.sync();
+                }
             }
             
-            // Define o alvo exato para receber as fórmulas
-            const target = range.getOffsetRange(0, range.columnCount)
-                              .getResizedRange(formulas.length - 1, 1);
-            target.formulas = formulas;
-            
-            await context.sync();
             updateStatus("➗ Texto dividido!", "success");
         } catch (e) { 
             updateStatus("❌ Erro: " + e.message, "error"); 
@@ -86,31 +95,25 @@ async function splitByDelimiter() {
     });
 }
 
-
+// 4. TRANSFORMAR TEXTO (CÉLULA POR CÉLULA, ZERO PAYLOAD)
 async function transformText(mode) {
     await Excel.run(async (context) => {
         try {
             const range = context.workbook.getSelectedRange();
-            
-            // CARREGA SÓ AS DIMENSÕES (MUITO LEVE)
-            range.load(["rowCount", "columnCount"]); 
+            range.load(["rowCount", "columnCount"]);
             await context.sync();
             
             const rows = range.rowCount;
             const cols = range.columnCount;
             
-            // LOOP CÉLULA POR CÉLULA (ZERO PAYLOAD PESADO)
             for (let i = 0; i < rows; i++) {
                 for (let j = 0; j < cols; j++) {
                     const cell = range.getCell(i, j);
-                    
-                    // CARREGA SÓ ESTA CÉLULA
                     cell.load("values");
                     await context.sync();
                     
                     let val = cell.values[0][0];
                     if (typeof val === 'string' && val.trim() !== '') {
-                        // TRANSFORMA E ESCREVE IMEDIATAMENTE
                         cell.values = [[mode === "UPPER" ? val.toUpperCase() : val.toLowerCase()]];
                         await context.sync();
                     }
@@ -120,7 +123,6 @@ async function transformText(mode) {
             updateStatus(`⬆️⬇️ Convertido para ${mode}!`, "success");
         } catch (e) { 
             updateStatus("❌ Erro: " + e.message, "error"); 
-            console.error(e);
         }
     });
 }
