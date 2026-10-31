@@ -91,27 +91,28 @@ function setTheme(themeName) {
 async function chooseColumns() {
     await Excel.run(async (context) => {
         try {
-            // 1. Pega o valor do input
             const input = document.getElementById("colsToKeep").value;
             if (!input) throw new Error("Digite os números das colunas!");
             
-            // 2. Transforma texto "1,2,5" em lista de números [1, 2, 5]
+            // Transforma "1,2,5" em array de números
             const cols = input.split(",").map(n => parseInt(n.trim()));
             
-            // 3. Pega a planilha ativa e o intervalo usado
             const sheet = context.workbook.worksheets.getActiveWorksheet();
             const range = sheet.getUsedRange();
             
-            // 4. O SEGREDO: Carrega as propriedades ANTES de usar
-            // Sem isso, o Excel não sabe quantas colunas existem
+            // Carrega address e columnCount
             range.load(["address", "columnCount"]);
             await context.sync(); 
             
-            // 5. Cria a fórmula dinâmica CHOOSECOLS
-            // Usa ponto e vírgula (;) porque seu Excel está em PT-BR
-            const formula = `=CHOOSECOLS(${range.address}; ${cols.join("; ")})`;
+            // LIMPEZA DO ENDEREÇO: Remove os cifrões ($) para evitar erros de formato
+            // Ex: transforma "$A$1:$J$100" em "A1:J100"
+            let cleanAddress = range.address.replace(/\$/g, '');
             
-            // 6. Joga a fórmula 2 colunas à direita da tabela original
+            // CORREÇÃO CRÍTICA: Usa VÍRGULA (,) como separador na fórmula
+            // A API do Excel via JS prefere vírgula, mesmo em PT-BR
+            const formula = `=CHOOSECOLS(${cleanAddress},${cols.join(",")})`;
+            
+            // Escreve a fórmula 2 colunas à direita
             sheet.getCell(0, range.columnCount + 2).formulas = [[formula]];
             
             await context.sync();
