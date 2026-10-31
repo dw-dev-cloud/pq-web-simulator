@@ -91,27 +91,34 @@ async function transformText(mode) {
     await Excel.run(async (context) => {
         try {
             const range = context.workbook.getSelectedRange();
-            range.load("values"); // Isso aqui é o load, não o nome da função!
+            
+            // CARREGA SÓ O TAMANHO PRA SABER QUANTAS LINHAS TEM
+            range.load("rowCount"); 
             await context.sync();
             
-            const values = range.values;
-            const newValues = [];
-            
-            for (let i = 0; i < values.length; i++) {
+            // PROCESSA LINHA POR LINHA PRA NÃO ESTOURAR PAYLOAD
+            for (let i = 0; i < range.rowCount; i++) {
+                const cell = range.getRow(i); // Pega a linha atual
+                cell.load("values");
+                await context.sync();
+                
+                const rowValues = cell.values[0];
                 const newRow = [];
-                for (let j = 0; j < values[i].length; j++) {
-                    let cellValue = values[i][j];
-                    if (typeof cellValue === 'string' && cellValue.trim() !== '') {
-                        newRow.push(mode === "UPPER" ? cellValue.toUpperCase() : cellValue.toLowerCase());
+                
+                for (let j = 0; j < rowValues.length; j++) {
+                    let val = rowValues[j];
+                    if (typeof val === 'string' && val.trim() !== '') {
+                        newRow.push(mode === "UPPER" ? val.toUpperCase() : val.toLowerCase());
                     } else {
-                        newRow.push(cellValue);
+                        newRow.push(val);
                     }
                 }
-                newValues.push(newRow);
+                
+                // ESCREVE DE VOLTA IMEDIATAMENTE (LEVE E SEGURO)
+                cell.values = [newRow];
+                await context.sync();
             }
             
-            range.values = newValues;
-            await context.sync(); 
             updateStatus(`⬆️⬇️ Convertido para ${mode}!`, "success");
         } catch (e) { 
             updateStatus("❌ Erro: " + e.message, "error"); 
