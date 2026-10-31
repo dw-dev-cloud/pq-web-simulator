@@ -203,3 +203,38 @@ button:active {
 
 .theme-btn:hover { transform: scale(1.1); }
 .theme-btn.active { border-color: var(--text-primary); }
+
+/* ESTILIZA BOTÕES DE FUNÇÃO COM AS VARIÁVEIS DO TEMA */
+.btn-group button, 
+button:not(.theme-btn) {
+    background: var(--primary) !important;
+    color: white !important;
+    border: none !important;
+    border-radius: 8px !important;
+    font-weight: 600 !important;
+    transition: all 0.3s ease !important;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+}
+
+.btn-group button:hover,
+button:not(.theme-btn):hover {
+    background: var(--primary-hover) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* ESTILIZA INPUTS COM O TEMA */
+input {
+    background: var(--bg-input) !important;
+    color: var(--text-primary) !important;
+    border: 1px solid var(--border) !important;
+}
+
+input:focus {
+    border-color: var(--primary) !important;
+}
+
+/* ESTILIZA LABELS */
+label {
+    color: var(--text-secondary) !important;
+}

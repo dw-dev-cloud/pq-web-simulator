@@ -2,24 +2,57 @@
 Office.onReady((info) => {
     if (info.host === Office.HostType.Excel) {
         updateStatus("✅ PQ Web Simulator Pronto!", "success");
+        
+        // Carrega tema salvo APÓS o Office estar pronto (mais seguro)
+        loadSavedTheme();
     }
 });
+
+// FUNÇÃO PARA CARREGAR TEMA SALVO (SEGURA)
+function loadSavedTheme() {
+    try {
+        const savedTheme = localStorage.getItem('pq-theme');
+        if (savedTheme) {
+            document.documentElement.setAttribute('data-theme', savedTheme);
+            
+            // Marca o botão correto como ativo
+            setTimeout(() => {
+                const buttons = document.querySelectorAll('.theme-btn');
+                buttons.forEach(btn => {
+                    const onclickAttr = btn.getAttribute('onclick') || '';
+                    if (onclickAttr.includes(savedTheme)) {
+                        btn.classList.add('active');
+                    }
+                });
+            }, 100);
+        }
+    } catch (e) {
+        console.log('Tema padrão carregado');
+    }
+}
+
 // FUNÇÃO PARA TROCAR TEMA
 function setTheme(themeName) {
     document.documentElement.setAttribute('data-theme', themeName);
     
     // Atualiza botão ativo
-    document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.remove('active'));
-    event.target.classList.add('active');
+    const buttons = document.querySelectorAll('.theme-btn');
+    buttons.forEach(btn => btn.classList.remove('active'));
     
-    // Salva preferência (opcional)
-    localStorage.setItem('pq-theme', themeName);
-}
-
-// Carrega tema salvo ao iniciar
-const savedTheme = localStorage.getItem('pq-theme');
-if (savedTheme) {
-    document.documentElement.setAttribute('data-theme', savedTheme);
+    // Encontra o botão clicado pelo tema
+    buttons.forEach(btn => {
+        const onclickAttr = btn.getAttribute('onclick') || '';
+        if (onclickAttr.includes(themeName)) {
+            btn.classList.add('active');
+        }
+    });
+    
+    // Salva preferência
+    try {
+        localStorage.setItem('pq-theme', themeName);
+    } catch (e) {
+        console.log('Não foi possível salvar tema');
+    }
 }
 
 function updateStatus(msg, type = "") {
@@ -30,7 +63,7 @@ function updateStatus(msg, type = "") {
     }
 }
 
-// 1. MANTER COLUNAS (Usa fórmula única, leve)
+// 1. MANTER COLUNAS
 async function chooseColumns() {
     await Excel.run(async (context) => {
         try {
@@ -49,7 +82,7 @@ async function chooseColumns() {
     });
 }
 
-// 2. APLICAR FILTRO (Usa fórmula única, leve)
+// 2. APLICAR FILTRO
 async function applyFilter() {
     await Excel.run(async (context) => {
         try {
@@ -61,14 +94,12 @@ async function applyFilter() {
             const sheet = context.workbook.worksheets.getActiveWorksheet();
             const usedRange = sheet.getUsedRange();
             
-            // CARREGA TODOS OS VALORES DA TABELA
             usedRange.load(["values", "rowCount", "columnCount"]); 
             await context.sync();
             
             const allValues = usedRange.values;
-            const colIndex = colLetter.charCodeAt(0) - 65; // Converte letra pra índice (A=0, D=3...)
+            const colIndex = colLetter.charCodeAt(0) - 65;
             
-            // FILTRA NO JAVASCRIPT PURO
             const filteredRows = allValues.filter(row => {
                 const cellValue = row[colIndex];
                 return cellValue !== undefined && String(cellValue).trim() === val;
@@ -79,18 +110,14 @@ async function applyFilter() {
                 return;
             }
             
-            // ESCREVE O RESULTADO FILTRADO NA COLUNA N (ÍNDICE 13)
             const targetRange = sheet.getRangeByIndexes(
-                0,              // linha inicial
-                13,             // coluna N
-                filteredRows.length, // número de linhas filtradas
-                usedRange.columnCount  // número de colunas original
+                0, 13, filteredRows.length, usedRange.columnCount
             );
             
             targetRange.values = filteredRows;
             
             await context.sync();
-            updateStatus(`🔍 Filtro aplicado! ${filteredRows.length} linhas encontradas na coluna N!`, "success");
+            updateStatus(`🔍 Filtro aplicado! ${filteredRows.length} linhas na coluna N!`, "success");
         } catch (e) { 
             updateStatus("❌ Erro: " + e.message, "error"); 
             console.error(e);
@@ -98,7 +125,7 @@ async function applyFilter() {
     });
 }
 
-// 3. DIVIDIR TEXTO (VALORES PUROS, CÉLULA POR CÉLULA, ZERO ADDRESS)
+// 3. DIVIDIR TEXTO
 async function splitByDelimiter() {
     await Excel.run(async (context) => {
         try {
@@ -106,15 +133,11 @@ async function splitByDelimiter() {
             if (!delim) throw new Error("Informe o delimitador!");
             
             const range = context.workbook.getSelectedRange();
-            
-            // CARREGA SÓ O NECESSÁRIO
             range.load(["rowCount", "values"]); 
             await context.sync();
             
             const rows = range.rowCount;
             const originalValues = range.values;
-            
-            // PREPARA DUAS MATRIZES UNIDIMENSIONAIS (UMA COLUNA CADA)
             const part1Values = [];
             const part2Values = [];
             
@@ -123,7 +146,7 @@ async function splitByDelimiter() {
                 
                 if (typeof cellValue === 'string' && cellValue.includes(delim)) {
                     const parts = cellValue.split(delim);
-                    part1Values.push([parts[0].trim()]); // Matriz [[val], [val], ...]
+                    part1Values.push([parts[0].trim()]);
                     part2Values.push([parts.slice(1).join(delim).trim()]);
                 } else {
                     part1Values.push([cellValue]);
@@ -131,11 +154,8 @@ async function splitByDelimiter() {
                 }
             }
             
-            // ESCREVE A PRIMEIRA PARTE NA SELEÇÃO ORIGINAL
             range.values = part1Values;
-            
-            // ESCREVE A SEGUNDA PARTE NA COLUNA AO LADO (OFFSET DE 1 COLUNA)
-            const sideRange = range.getOffsetRange(0, 1); // Move 1 coluna à direita
+            const sideRange = range.getOffsetRange(0, 1);
             sideRange.values = part2Values;
             
             await context.sync(); 
@@ -146,13 +166,12 @@ async function splitByDelimiter() {
         }
     });
 }
-// 4. TRANSFORMAR TEXTO (CÉLULA POR CÉLULA, ZERO PAYLOAD)
+
+// 4. TRANSFORMAR TEXTO
 async function transformText(mode) {
     await Excel.run(async (context) => {
         try {
             const range = context.workbook.getSelectedRange();
-            
-            // CARREGA DIMENSÕES E VALORES DE UMA VEZ SÓ
             range.load(["rowCount", "columnCount", "values"]); 
             await context.sync();
             
@@ -161,7 +180,6 @@ async function transformText(mode) {
             const originalValues = range.values;
             const newValues = [];
             
-            // PROCESSA TUDO NA MEMÓRIA (SEM SYNC NO MEIO)
             for (let i = 0; i < rows; i++) {
                 const newRow = [];
                 for (let j = 0; j < cols; j++) {
@@ -175,7 +193,6 @@ async function transformText(mode) {
                 newValues.push(newRow);
             }
             
-            // ESCREVE TUDO DE UMA VEZ SÓ (UMA ÚNICA AÇÃO NO CTRL+Z!)
             range.values = newValues;
             await context.sync(); 
             
