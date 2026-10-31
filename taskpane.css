@@ -91,6 +91,7 @@
     --success: #81c784; --error: #e57373; --border: #546e7a;
 }
 
+/* LAYOUT DO SELETOR DE TEMAS */
 .theme-header {
     display: flex;
     justify-content: space-between;
@@ -99,7 +100,7 @@
 }
 
 .theme-header label {
-    margin-bottom: 0 !important; /* Remove margem extra do label */
+    margin-bottom: 0 !important;
 }
 
 #toggle-theme-btn {
@@ -129,7 +130,7 @@ h2, h3, .ms-font-l, .ms-font-m, .ms-font-s {
     color: var(--text-primary) !important;
 }
 
-/* SELETOR DE TEMAS */
+/* SELETOR DE TEMAS (GRID) */
 .theme-selector {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
@@ -201,7 +202,7 @@ input:focus, textarea:focus, select:focus, .ms-TextField-field:focus {
     box-shadow: 0 0 0 2px rgba(108, 92, 231, 0.2) !important;
 }
 
-/* BOTÕES DE FUNÇÃO (O SEGREDO TÁ AQUI!) */
+/* BOTÕES DE FUNÇÃO */
 button, .ms-Button, .ms-PrimaryButton, .ms-CommandBarButton {
     width: 100% !important;
     padding: 12px !important;
@@ -230,9 +231,9 @@ button:active, .ms-Button:active {
     transform: translateY(0) !important;
 }
 
-/* BOTÕES DE TEMA (EXCEÇÃO - NÃO APPLYAR ESTILO DE FUNÇÃO) */
+/* EXCEÇÃO: BOTÕES DE TEMA (NÃO HERDAM ESTILO DE FUNÇÃO) */
 .theme-btn {
-    background: inherit !important; /* Mantém a cor inline do HTML */
+    background: inherit !important;
     width: auto !important;
     padding: 0 !important;
     margin: 0 !important;
@@ -264,6 +265,67 @@ button:active, .ms-Button:active {
     color: var(--error) !important; 
     border-color: var(--error) !important; 
 }
+
+/* =========================================
+   ANIMAÇÕES DO TÍTULO (CORRIGIDAS)
+   ========================================= */
+
+h2 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 0;
+}
+
+/* OPÇÃO 1: Brilho Suave (ATIVA POR PADRÃO) */
+/* Usa color-mix para pegar a cor --primary do tema atual */
+h2 {
+    animation: title-glow 3s infinite alternate;
+}
+
+@keyframes title-glow {
+    0% { 
+        text-shadow: 0 0 5px color-mix(in srgb, var(--primary) 20%, transparent); 
+    }
+    100% { 
+        text-shadow: 0 0 15px color-mix(in srgb, var(--primary) 60%, transparent); 
+    }
+}
+
+/* OPÇÃO 2: Ícone Girando (DESCOMENTE AS LINHAS ABAIXO PARA TESTAR) */
+/* Lembre-se de remover o emoji 🛠️ do HTML se ativar esta opção */
+/* 
+h2::before {
+    content: '🛠️';
+    display: inline-block;
+    animation: spin-slow 4s linear infinite;
+    margin-right: 8px;
+}
+
+@keyframes spin-slow {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+*/
+
+/* OPÇÃO 3: Entrada Elegante (DESCOMENTE AS LINHAS ABAIXO PARA TESTAR) */
+/* 
+h2 {
+    opacity: 0;
+    animation: fade-in-up 0.8s ease-out forwards;
+}
+
+@keyframes fade-in-up {
+    from { 
+        opacity: 0; 
+        transform: translateY(-10px); 
+    }
+    to { 
+        opacity: 1; 
+        transform: translateY(0); 
+    }
+}
+*/
 
 /* SCROLLBAR PERSONALIZADA */
 ::-webkit-scrollbar {
