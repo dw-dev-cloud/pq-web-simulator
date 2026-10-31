@@ -86,12 +86,13 @@ async function splitByDelimiter() {
     });
 }
 
+
 async function transformText(mode) {
     await Excel.run(async (context) => {
         try {
             const range = context.workbook.getSelectedRange();
-            range.load("values"); 
-            await context.sync(); 
+            range.load("values"); // Isso aqui é o load, não o nome da função!
+            await context.sync();
             
             const values = range.values;
             const newValues = [];
