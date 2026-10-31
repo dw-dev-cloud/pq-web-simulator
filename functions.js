@@ -100,29 +100,38 @@ async function transformText(mode) {
     await Excel.run(async (context) => {
         try {
             const range = context.workbook.getSelectedRange();
-            range.load(["rowCount", "columnCount"]);
+            
+            // CARREGA DIMENSÕES E VALORES DE UMA VEZ SÓ
+            range.load(["rowCount", "columnCount", "values"]); 
             await context.sync();
             
             const rows = range.rowCount;
             const cols = range.columnCount;
+            const originalValues = range.values;
+            const newValues = [];
             
+            // PROCESSA TUDO NA MEMÓRIA (SEM SYNC NO MEIO)
             for (let i = 0; i < rows; i++) {
+                const newRow = [];
                 for (let j = 0; j < cols; j++) {
-                    const cell = range.getCell(i, j);
-                    cell.load("values");
-                    await context.sync();
-                    
-                    let val = cell.values[0][0];
+                    let val = originalValues[i][j];
                     if (typeof val === 'string' && val.trim() !== '') {
-                        cell.values = [[mode === "UPPER" ? val.toUpperCase() : val.toLowerCase()]];
-                        await context.sync();
+                        newRow.push(mode === "UPPER" ? val.toUpperCase() : val.toLowerCase());
+                    } else {
+                        newRow.push(val);
                     }
                 }
+                newValues.push(newRow);
             }
+            
+            // ESCREVE TUDO DE UMA VEZ SÓ (UMA ÚNICA AÇÃO NO CTRL+Z!)
+            range.values = newValues;
+            await context.sync(); 
             
             updateStatus(`⬆️⬇️ Convertido para ${mode}!`, "success");
         } catch (e) { 
             updateStatus("❌ Erro: " + e.message, "error"); 
+            console.error(e);
         }
     });
 }
