@@ -267,7 +267,7 @@ button:active, .ms-Button:active {
 }
 
 /* =========================================
-   ANIMAÇÕES DO TÍTULO (CORRIGIDAS)
+   ANIMAÇÕES COMBINADAS (BRILHO + MARTELO)
    ========================================= */
 
 h2 {
@@ -277,8 +277,7 @@ h2 {
     margin-top: 0;
 }
 
-/* OPÇÃO 1: Brilho Suave (ATIVA POR PADRÃO) */
-/* Usa color-mix para pegar a cor --primary do tema atual */
+/* OPÇÃO 1: Brilho no TEXTO do título */
 h2 {
     animation: title-glow 3s infinite alternate;
 }
@@ -292,14 +291,11 @@ h2 {
     }
 }
 
-/* OPÇÃO 2: Ícone Girando (DESCOMENTE AS LINHAS ABAIXO PARA TESTAR) */
-/* Lembre-se de remover o emoji 🛠️ do HTML se ativar esta opção */
-/* 
+/* OPÇÃO 2: Martelo girando (só no emoji) */
 h2::before {
     content: '🛠️';
     display: inline-block;
     animation: spin-slow 4s linear infinite;
-    margin-right: 8px;
 }
 
 @keyframes spin-slow {
@@ -309,7 +305,7 @@ h2::before {
 */
 
 /* OPÇÃO 3: Entrada Elegante (DESCOMENTE AS LINHAS ABAIXO PARA TESTAR) */
-/* 
+ 
 h2 {
     opacity: 0;
     animation: fade-in-up 0.8s ease-out forwards;
