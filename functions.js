@@ -11,22 +11,31 @@ Office.onReady((info) => {
     }
 });
 
-// Função universal para tocar sons de UI
+// Função universal para tocar sons de UI (COM DEBUG)
 function playUISound(soundId) {
+    console.log('🔊 Tentando tocar o som:', soundId);
     try {
         const sound = document.getElementById(soundId);
+        console.log('Elemento de áudio encontrado:', sound);
+        
         if (sound) {
             sound.currentTime = 0; // Reinicia pra permitir repetição rápida
-            sound.volume = 0.3;    // Volume baixo (30%) pra ser sutil
+            sound.volume = 0.5;    // Aumentei para 50% pra facilitar o teste
             
-            // Tenta tocar. Se falhar (bloqueio do navegador), ignora silenciosamente
+            // Tenta tocar e captura qualquer erro de bloqueio do navegador
             const playPromise = sound.play();
             if (playPromise !== undefined) {
-                playPromise.catch(() => {}); 
+                playPromise.then(() => {
+                    console.log('✅ Som tocou com sucesso!');
+                }).catch(error => {
+                    console.warn('⚠️ Navegador bloqueou o som (Autoplay policy):', error);
+                });
             }
+        } else {
+            console.error('❌ Elemento de áudio NÃO encontrado com o ID:', soundId);
         }
     } catch (e) {
-        // Falha total silenciosa
+        console.error('❌ Erro fatal ao tentar tocar som:', e);
     }
 }
 
@@ -34,7 +43,10 @@ function playUISound(soundId) {
 function setupEventListeners() {
     // 1. Som de Hover em TODOS os botões
     document.querySelectorAll('button').forEach(btn => {
-        btn.addEventListener('mouseenter', () => playUISound('snd-hover'));
+        btn.addEventListener('mouseenter', () => {
+            console.log('🖱️ Mouse passou sobre:', btn.id || 'botão sem ID');
+            playUISound('snd-hover');
+        });
     });
 
     // 2. Lógica do Botão Escolher/Fechar Tema
