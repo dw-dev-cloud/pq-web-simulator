@@ -1,5 +1,5 @@
 /* =========================================
-   PQ WEB SIMULATOR - LÓGICA & EVENTOS
+   PQ WEB SIMULATOR - LÓGICA & EVENTOS UNIFICADOS
    ========================================= */
 
 // INICIALIZAÇÃO DO OFFICE
@@ -10,6 +10,7 @@ Office.onReady((info) => {
         setupEventListeners(); 
     }
 });
+
 // Função universal para tocar sons de UI
 function playUISound(soundId) {
     try {
@@ -28,17 +29,15 @@ function playUISound(soundId) {
         // Falha total silenciosa
     }
 }
-function setupEventListeners() {
-    // ... seu código existente de temas e botões ...
 
-    // ADICIONE ISSO: Som de hover em TODOS os botões
+// CONFIGURAÇÃO DOS EVENTOS (VERSÃO ÚNICA E COMPLETA)
+function setupEventListeners() {
+    // 1. Som de Hover em TODOS os botões
     document.querySelectorAll('button').forEach(btn => {
         btn.addEventListener('mouseenter', () => playUISound('snd-hover'));
     });
-}
-// CONFIGURAÇÃO DOS EVENTOS (VERSÃO ÚNICA E CORRETA)
-function setupEventListeners() {
-    // 1. Lógica do Botão Escolher/Fechar
+
+    // 2. Lógica do Botão Escolher/Fechar Tema
     const toggleBtn = document.getElementById('toggle-theme-btn');
     const themeList = document.getElementById('theme-list');
 
@@ -50,7 +49,7 @@ function setupEventListeners() {
         });
     }
 
-    // 2. Lógica dos Temas
+    // 3. Lógica dos Temas
     document.querySelectorAll('.theme-btn').forEach(btn => {
         btn.addEventListener('click', function() {
             const theme = this.getAttribute('data-theme');
@@ -58,7 +57,7 @@ function setupEventListeners() {
         });
     });
 
-    // 3. Lógica dos Botões de Função
+    // 4. Lógica dos Botões de Função
     document.getElementById('btn-keep-cols')?.addEventListener('click', chooseColumns);
     document.getElementById('btn-filter')?.addEventListener('click', applyFilter);
     document.getElementById('btn-split')?.addEventListener('click', splitByDelimiter);
@@ -66,36 +65,18 @@ function setupEventListeners() {
     document.getElementById('btn-lower')?.addEventListener('click', () => transformText('LOWER'));
 }
 
-// FUNÇÕES AUXILIARES DE UI
-function updateStatus(msg, type = "") {
-    const el = document.getElementById("status");
-    if (el) {
-        el.innerText = msg;
-        el.className = type;
-    }
-}
+// FUNÇÕES AUXILIARES DE UI (COM SONS INTEGRADOS)
 function updateStatus(msg, type = "") {
     const el = document.getElementById("status");
     if (el) {
         el.innerText = msg;
         el.className = type;
         
-        // Toca som de sucesso se for mensagem positiva
-        if (type === "success") {
-            playUISound('snd-success');
-        }
-    }
-}
-function updateStatus(msg, type = "") {
-    const el = document.getElementById("status");
-    if (el) {
-        el.innerText = msg;
-        el.className = type;
-        
+        // Toca som baseado no tipo de mensagem
         if (type === "success") {
             playUISound('snd-success');
         } else if (type === "error") {
-            playUISound('snd-error'); // <-- SOM DE ERRO AQUI!
+            playUISound('snd-error');
         }
     }
 }
@@ -138,6 +119,7 @@ function setTheme(themeName) {
 // =========================================
 // FUNÇÕES DO EXCEL
 // =========================================
+
 async function chooseColumns() {
     await Excel.run(async (context) => {
         try {
@@ -155,11 +137,9 @@ async function chooseColumns() {
             await context.sync(); 
             
             // LIMPEZA DO ENDEREÇO: Remove os cifrões ($) para evitar erros de formato
-            // Ex: transforma "$A$1:$J$100" em "A1:J100"
             let cleanAddress = range.address.replace(/\$/g, '');
             
             // CORREÇÃO CRÍTICA: Usa VÍRGULA (,) como separador na fórmula
-            // A API do Excel via JS prefere vírgula, mesmo em PT-BR
             const formula = `=CHOOSECOLS(${cleanAddress},${cols.join(",")})`;
             
             // Escreve a fórmula 2 colunas à direita
