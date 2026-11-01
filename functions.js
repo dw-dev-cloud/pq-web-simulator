@@ -126,6 +126,9 @@ function setTheme(themeName) {
     
     try { localStorage.setItem('pq-theme', themeName); } 
     catch (e) { console.log('Não foi possível salvar tema'); }
+     playUISound('snd-success');
+
+    
 }
 
 // =========================================
