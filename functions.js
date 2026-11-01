@@ -10,7 +10,32 @@ Office.onReady((info) => {
         setupEventListeners(); 
     }
 });
+// Função universal para tocar sons de UI
+function playUISound(soundId) {
+    try {
+        const sound = document.getElementById(soundId);
+        if (sound) {
+            sound.currentTime = 0; // Reinicia pra permitir repetição rápida
+            sound.volume = 0.3;    // Volume baixo (30%) pra ser sutil
+            
+            // Tenta tocar. Se falhar (bloqueio do navegador), ignora silenciosamente
+            const playPromise = sound.play();
+            if (playPromise !== undefined) {
+                playPromise.catch(() => {}); 
+            }
+        }
+    } catch (e) {
+        // Falha total silenciosa
+    }
+}
+function setupEventListeners() {
+    // ... seu código existente de temas e botões ...
 
+    // ADICIONE ISSO: Som de hover em TODOS os botões
+    document.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('mouseenter', () => playUISound('snd-hover'));
+    });
+}
 // CONFIGURAÇÃO DOS EVENTOS (VERSÃO ÚNICA E CORRETA)
 function setupEventListeners() {
     // 1. Lógica do Botão Escolher/Fechar
@@ -47,6 +72,31 @@ function updateStatus(msg, type = "") {
     if (el) {
         el.innerText = msg;
         el.className = type;
+    }
+}
+function updateStatus(msg, type = "") {
+    const el = document.getElementById("status");
+    if (el) {
+        el.innerText = msg;
+        el.className = type;
+        
+        // Toca som de sucesso se for mensagem positiva
+        if (type === "success") {
+            playUISound('snd-success');
+        }
+    }
+}
+function updateStatus(msg, type = "") {
+    const el = document.getElementById("status");
+    if (el) {
+        el.innerText = msg;
+        el.className = type;
+        
+        if (type === "success") {
+            playUISound('snd-success');
+        } else if (type === "error") {
+            playUISound('snd-error'); // <-- SOM DE ERRO AQUI!
+        }
     }
 }
 
